@@ -3,27 +3,41 @@ services:
     nginx:
         image: nginx
         volumes:
-            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+            #- ./docker/nginx/default-apache.conf:/etc/nginx/conf.d/default.conf
+            - ./docker/nginx/default-php-fpm.conf:/etc/nginx/conf.d/default.conf
+            - ./app:/var/www/app
         networks:
             - front
             - backend
         ports:
             - "80:80"
-    apache:
-        build: ./docker/apache
+    php-fpm:
+        build:
+            context: ./docker/php-fpm
+            args:
+                TIMEZONE: ${TIMEZONE}
         volumes:
-            - ./:/var/www/html
-            - ./docker/apache/php.ini:/usr/local/etc/php/php.ini
-            - ./docker/apache/000-default.conf:/etc/apache2/sites-enabled/000-default.conf
+            - ./app:/var/www/app
+            - ./docker/php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf
         networks:
             - backend
         ports:
-            - "8000:80" 
+            - "9000:9000"
+    #apache:
+    #    build: ./docker/apache
+    #    volumes:
+    #        - ./:/var/www/html
+    #        - ./docker/apache/php.ini:/usr/local/etc/php/php.ini
+    #        - ./docker/apache/000-default.conf:/etc/apache2/sites-enabled/000-default.conf
+    #    networks:
+    #        - backend
+    #    ports:
+    #        - "8000:80"
     mysql:
         image: mysql:latest
         restart: always
         volumes:
-            - ./docker/mysql:/var/lib/mysql
+            - ./docker/mysql/data:/var/lib/mysql
         environment:
                MYSQL_ROOT_PASSWORD: root
                MYSQL_DATABASE: local
@@ -45,7 +59,7 @@ services:
         image: mongo
         restart: always
         volumes:
-            - ./docker/mongo:/data/db
+            - ./docker/mongo/data:/data/db
         environment:
             - MONGO_INITDB_ROOT_USERNAME=root
             - MONGO_INITDB_ROOT_PASSWORD=local
