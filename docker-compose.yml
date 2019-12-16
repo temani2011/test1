@@ -14,11 +14,17 @@ services:
     php-fpm:
         build:
             context: ./docker/php-fpm
-            args:
-                TIMEZONE: ${TIMEZONE}
         volumes:
             - ./app:/var/www/app
             - ./docker/php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf
+        environment:
+            APACHE_DOCUMENT_ROOT: "public/"
+            PHP_EXTENSION_XDEBUG: "1"
+            PHP_INI_MEMORY_LIMIT: "1G"
+            # Symfony
+            APP_ENV: "dev"
+            APP_SECRET: "1fd2d4c91f5cbf4e3d4714888a88b349"
+            DATABASE_URL: "mysql://$MYSQL_USER:$MYSQL_PASSWORD@mysql:3306/$MYSQL_DATABASE"
         networks:
             - backend
         ports:
@@ -34,23 +40,24 @@ services:
     #    ports:
     #        - "8000:80"
     mysql:
-        image: mysql:latest
-        restart: always
+        image: mysql:5.7
+        #restart: always
+        #command: --default-authentication-plugin=mysql_native_password
         volumes:
-            - ./docker/mysql/data:/var/lib/mysql
+            - ./docker/mysql/data2:/var/lib/mysql
         environment:
-               MYSQL_ROOT_PASSWORD: root
-               MYSQL_DATABASE: local
-               MYSQL_USER: local
-               MYSQL_PASSWORD: local
+               MYSQL_ROOT_PASSWORD: "$MYSQL_ROOT_PASSWORD"
+               MYSQL_DATABASE: "$MYSQL_DATABASE"
+               MYSQL_USER: "$MYSQL_USER"
+               MYSQL_PASSWORD: "$MYSQL_PASSWORD"
         networks:
             - backend 
     phpmyadmin:
         image: phpmyadmin/phpmyadmin:latest
         environment:
-            - PMA_HOST=db
-            - PMA_USER=local
-            - PMA_PASSWORD=local
+            PMA_HOST: "mysql"
+            PMA_USER: "$MYSQL_USER"
+            PMA_PASSWORD: "$MYSQL_PASSWORD"
         volumes:
             - /sessions
         networks:
@@ -61,9 +68,9 @@ services:
         volumes:
             - ./docker/mongo/data:/data/db
         environment:
-            - MONGO_INITDB_ROOT_USERNAME=root
-            - MONGO_INITDB_ROOT_PASSWORD=local
-            - MONGO_INITDB_DATABASE=local
+            - MONGO_INITDB_ROOT_USERNAME="$MONGO_INITDB_ROOT_USERNAME"
+            - MONGO_INITDB_ROOT_PASSWORD="$MONGO_INITDB_ROOT_PASSWORD"
+            - MONGO_INITDB_DATABASE="$MONGO_INITDB_DATABASE"
         networks:
             - backend
         ports:

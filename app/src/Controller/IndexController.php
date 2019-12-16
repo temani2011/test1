@@ -11,7 +11,19 @@ use Symfony\Component\Routing\Annotation\Route;
 final class IndexController extends AbstractController
 {
     /**
-     * @Route("/{vueRouting}", name="index")
+     * @Route("/info", name="info")
+     * @return Response
+     */
+    public function infoAction(): Response
+    {
+        ob_start();
+        phpinfo();
+        $phpinfo = ob_get_clean();
+        return new Response(
+            '<html><body>'.$phpinfo.'</body></html>');
+    }
+    /**
+     * @Route("/{vueRouting}", requirements={"vueRouting"="^(?!api|_(profiler|wdt)).*"}, name="index")
      * @return Response
      */
     public function indexAction(): Response

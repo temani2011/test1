@@ -1,2 +1,3 @@
 docker/mongo/data
 docker/mysql/data
+.env
