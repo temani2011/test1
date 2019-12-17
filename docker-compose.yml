@@ -51,7 +51,18 @@ services:
                MYSQL_USER: "$MYSQL_USER"
                MYSQL_PASSWORD: "$MYSQL_PASSWORD"
         networks:
-            - backend 
+            - backend
+    mysql_tests:
+        image: mysql:5.7
+        environment:
+            MYSQL_ROOT_PASSWORD: "admin"
+            MYSQL_DATABASE: "tests"
+            MYSQL_USER: "foo"
+            MYSQL_PASSWORD: "bar"
+        volumes:
+            - ./docker/mysql_test/utf8mb4.cnf:/etc/mysql/conf.d/utf8mb4.cnf:ro
+        networks:
+            - backend
     phpmyadmin:
         image: phpmyadmin/phpmyadmin:latest
         environment:
