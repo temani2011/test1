@@ -14,9 +14,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\SerializerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 /**
  * @Rest\Route("/api")
+ * @IsGranted("IS_AUTHENTICATED_FULLY")
  */
 final class PostController extends AbstractController
 {
@@ -36,13 +38,15 @@ final class PostController extends AbstractController
      * @throws BadRequestHttpException
      *
      * @Rest\Post("/posts", name="createPost")
+     * @IsGranted("ROLE_FOO")
      */
-    public function createAction(Request $request): JsonResponse
+    public function createAction(Request $request): Response
     {
-        $message = $request->request->get('message');
+        $message = $request->get('message');
         if (empty($message)) {
             throw new BadRequestHttpException('message cannot be empty');
         }
+
         $post = new Post();
         $post->setMessage($message);
         $this->em->persist($post);
