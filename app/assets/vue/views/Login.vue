@@ -46,19 +46,18 @@
                 v-else-if="hasError"
                 class="row col"
         >
-            <div
-                    class="alert alert-danger"
-                    role="alert"
-            >
-                {{ error }}
-            </div>
+            <error-message :error="error" />
         </div>
     </div>
 </template>
 
 <script>
+    import ErrorMessage from "../components/ErrorMessage";
     export default {
         name: "Login",
+        components: {
+            ErrorMessage,
+        },
         data() {
             return {
                 login: "",
@@ -78,7 +77,6 @@
         },
         created() {
             let redirect = this.$route.query.redirect;
-
             if (this.$store.getters["security/isAuthenticated"]) {
                 if (typeof redirect !== "undefined") {
                     this.$router.push({path: redirect});
@@ -91,7 +89,6 @@
             async performLogin() {
                 let payload = {login: this.$data.login, password: this.$data.password},
                     redirect = this.$route.query.redirect;
-
                 await this.$store.dispatch("security/login", payload);
                 if (!this.$store.getters["security/hasError"]) {
                     if (typeof redirect !== "undefined") {

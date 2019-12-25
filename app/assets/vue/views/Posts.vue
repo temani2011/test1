@@ -1,4 +1,3 @@
-
 <template>
     <div>
         <div class="row col">
@@ -16,6 +15,7 @@
                                 v-model="message"
                                 type="text"
                                 class="form-control"
+                                lazy
                         >
                     </div>
                     <div class="col-4">
@@ -43,12 +43,7 @@
                 v-else-if="hasError"
                 class="row col"
         >
-            <div
-                    class="alert alert-danger"
-                    role="alert"
-            >
-                {{ error }}
-            </div>
+            <error-message :error="error" />
         </div>
 
         <div
@@ -71,11 +66,12 @@
 
 <script>
     import Post from "../components/Post";
-
+    import ErrorMessage from "../components/ErrorMessage";
     export default {
         name: "Posts",
         components: {
-            Post
+            Post,
+            ErrorMessage
         },
         data() {
             return {
@@ -98,9 +94,7 @@
             posts() {
                 return this.$store.getters["post/posts"];
             },
-            canCreatePost() {
-                return this.$store.getters["security/hasRole"]("ROLE_FOO");
-            }
+
         },
         created() {
             this.$store.dispatch("post/findAll");
