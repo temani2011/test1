@@ -5,6 +5,7 @@ services:
         volumes:
             #- ./docker/nginx/default-apache.conf:/etc/nginx/conf.d/default.conf
             - ./docker/nginx/default-php-fpm.conf:/etc/nginx/conf.d/default.conf
+            - ./docker/nginx/phpmyadmin.conf:/etc/nginx/conf.d/phpmyadmin.conf
             - ./app:/var/www/app
         networks:
             - front
@@ -73,6 +74,8 @@ services:
             - /sessions
         networks:
             - backend
+        ports:
+            - "443:80"
     mongo:
         image: mongo
         restart: always
