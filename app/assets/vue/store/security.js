@@ -28,7 +28,8 @@ export default {
         },
         hasRole(state) {
             return role => {
-                return state.user.roles.indexOf(role) !== -1;
+                //return state.user.roles[0].indexOf(role) !== -1;
+                return state.user.roles[0].indexOf(role) !== -1;
             }
         }
     },
@@ -43,7 +44,7 @@ export default {
             state.isLoading = false;
             state.error = null;
             state.isAuthenticated = true;
-            state.user = user;
+            state.user = JSON.parse(user);
         },
         [AUTHENTICATING_ERROR](state, error) {
             state.isLoading = false;

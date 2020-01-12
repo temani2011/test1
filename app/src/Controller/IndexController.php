@@ -22,6 +22,11 @@ final class IndexController extends AbstractController
     {
         $this->serializer = $serializer;
     }
+    /**
+     * @throws JsonException
+     *
+     * @Route("/info", requirements={"vueRouting"="^(?!api|_(profiler|wdt)).*"}, name="info")
+     */
     public function infoAction(): Response
     {
         ob_start();

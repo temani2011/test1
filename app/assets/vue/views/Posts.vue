@@ -94,7 +94,9 @@
             posts() {
                 return this.$store.getters["post/posts"];
             },
-
+            canCreatePost() {
+                return this.$store.getters["security/hasRole"]("ROLE_FOO");
+            }
         },
         created() {
             this.$store.dispatch("post/findAll");

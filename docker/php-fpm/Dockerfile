@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     #&& php7.2-mbstring \
     && docker-php-ext-install mysqli pdo pdo_mysql \
     && pecl install mongodb \
-    && docker-php-ext-enable mongodb
+    && docker-php-ext-enable mongodb 
 
 # Install Composer
 RUN curl -sL https://getcomposer.org/installer | php -- --install-dir /usr/bin --filename composer

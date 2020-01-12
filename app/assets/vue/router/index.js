@@ -10,7 +10,7 @@ Vue.use(VueRouter);
 let router = new VueRouter({
     mode: "history",
     routes: [
-        { path: "/home", component: Home },
+        { path: "/home", component: Home, meta: { requiresAuth: true } },
         { path: "/login", component: Login },
         { path: "/posts", component: Posts, meta: { requiresAuth: true } },
         { path: "*", redirect: "/home" }
