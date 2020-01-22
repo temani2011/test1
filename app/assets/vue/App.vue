@@ -1,30 +1,73 @@
 <template>
-    <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <router-link
-                    class="navbar-brand"
-                    to="/home"
-            >
-                App
-            </router-link>
-            <button
-                    class="navbar-toggler"
-                    type="button"
-                    data-toggle="collapse"
-                    data-target="#navbarNav"
-                    aria-controls="navbarNav"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation"
-            >
-                <span class="navbar-toggler-icon" />
-            </button>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <router-link class="navbar-brand" to="/home">
+                        App
+                    </router-link>
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <ul class="navbar-nav">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="#">Link <span class="sr-only">(current)</span></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Link</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown">Dropdown link</a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                    <a class="dropdown-item" href="#">Action</a> <a class="dropdown-item" href="#">Another action</a> <a class="dropdown-item" href="#">Something else here</a>
+                                    <div class="dropdown-divider">
+                                    </div> <a class="dropdown-item" href="#">Separated link</a>
+                                </div>
+                            </li>
+                        </ul>
+                        <form class="form-inline">
+                            <input class="form-control mr-sm-2" type="text" />
+                            <button class="btn btn-primary my-2 my-sm-0" type="submit">
+                                Search
+                            </button>
+                        </form>
+                        <ul class="navbar-nav ml-md-auto">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="#">Link <span class="sr-only">(current)</span></a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown">Dropdown link</a>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                                    <a class="dropdown-item" href="#">Action</a> <a class="dropdown-item" href="#">Another action</a> <a class="dropdown-item" href="#">Something else here</a>
+                                    <div class="dropdown-divider">
+                                    </div> <a class="dropdown-item" href="#">Separated link</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                <div class="row">
+                    <div id="left" class="col-md-3">
+                        <ul class="list-group list-group-flush">
+                            <router-link to="/home"><li class="list-group-item">Home</li></router-link>
+                            <router-link to="/posts"><li class="list-group-item">Posts</li></router-link>
+                        </ul>
+                    </div>
+                    <div id="center" class="col-md-6"><router-view/></div>
+                    <div id="right" class="col-md-3"></div>
+                </div>
+            </div>
+        </div>
+        <!--<nav id="sidebar" class="navbar navbar-expand-lg navbar-light bg-light">
+
             <div
                     id="navbarNav"
                     class="collapse navbar-collapse"
             >
-                <ul class="navbar-nav">
+                <ul class="list-group">
                     <router-link
-                            class="nav-item"
+                            class="list-group-item"
                             tag="li"
                             to="/home"
                             active-class="active"
@@ -32,7 +75,7 @@
                         <a class="nav-link">Home</a>
                     </router-link>
                     <router-link
-                            class="nav-item"
+                            class="list-group-item"
                             tag="li"
                             to="/posts"
                             active-class="active"
@@ -51,8 +94,8 @@
                 </ul>
             </div>
         </nav>
-
         <router-view />
+        -->
     </div>
 </template>
 
@@ -86,3 +129,6 @@
         },
     }
 </script>
+<style lang="sass">
+    @import './sass/main.sass';
+</style>
