@@ -43,6 +43,8 @@ final class SecurityController extends AbstractController
     }
 
     /**
+     * * Symfony will un-authenticate the user automatically by calling this route.
+     * 
      * @throws RuntimeException
      *
      * @Route("/security/logout", name="logout")

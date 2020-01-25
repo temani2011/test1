@@ -1,6 +1,6 @@
 <template>
     <div class="card w-100 mt-2">
-        <div class="card-body">
+        <div class="card-body elegant-color white-text">
             {{ message }}
         </div>
     </div>

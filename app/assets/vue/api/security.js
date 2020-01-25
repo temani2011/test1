@@ -6,5 +6,8 @@ export default {
             username: login,
             password: password
         });
+    },
+    logout(){
+       return axios.get("/api/security/logout");
     }
 }

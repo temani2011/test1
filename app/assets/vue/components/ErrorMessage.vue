@@ -3,7 +3,7 @@
             class="alert alert-danger"
             role="alert"
     >
-        {{ error.response.data.error }}
+        {{ error.response.data }}
     </div>
 </template>
 

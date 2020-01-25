@@ -3,7 +3,8 @@ import SecurityAPI from "../api/security";
 const AUTHENTICATING = "AUTHENTICATING",
     AUTHENTICATING_SUCCESS = "AUTHENTICATING_SUCCESS",
     AUTHENTICATING_ERROR = "AUTHENTICATING_ERROR",
-    PROVIDING_DATA_ON_REFRESH_SUCCESS = "PROVIDING_DATA_ON_REFRESH_SUCCESS";
+    PROVIDING_DATA_ON_REFRESH_SUCCESS = "PROVIDING_DATA_ON_REFRESH_SUCCESS",
+    LOGOUT_ACTION = "LOGOUT_ACTION";
 
 export default {
     namespaced: true,
@@ -57,6 +58,12 @@ export default {
             state.error = null;
             state.isAuthenticated = payload.isAuthenticated;
             state.user = payload.user;
+        },
+        [LOGOUT_ACTION](state){
+            state.isLoading = false;
+            state.error = false;
+            state.isAuthenticated = false;
+            state.user = null;
         }
     },
     actions: {
@@ -70,6 +77,11 @@ export default {
                 commit(AUTHENTICATING_ERROR, error);
                 return null;
             }
+        },
+        async logout({commit}){
+            commit(LOGOUT_ACTION);
+            let response = await SecurityAPI.logout();
+            return response;
         },
         onRefresh({commit}, payload) {
             commit(PROVIDING_DATA_ON_REFRESH_SUCCESS, payload);

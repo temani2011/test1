@@ -1,102 +1,96 @@
 <template>
+    <!-- Wrapper -->
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <router-link class="navbar-brand" to="/home">
-                        App
-                    </router-link>
-                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                        <ul class="navbar-nav">
-                            <li class="nav-item active">
-                                <a class="nav-link" href="#">Link <span class="sr-only">(current)</span></a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Link</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown">Dropdown link</a>
-                                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                    <a class="dropdown-item" href="#">Action</a> <a class="dropdown-item" href="#">Another action</a> <a class="dropdown-item" href="#">Something else here</a>
-                                    <div class="dropdown-divider">
-                                    </div> <a class="dropdown-item" href="#">Separated link</a>
-                                </div>
-                            </li>
-                        </ul>
+        <!-- Header -->
+        <nav class="navbar navbar-expand-lg navbar-dark cyan darken-3">
+            <a class="navbar-brand" href="#">Navbar</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent-4"
+                    aria-controls="navbarSupportedContent-4" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent-4">
+                <ul class="navbar-nav ml-auto">
+                    <li>
                         <form class="form-inline">
-                            <input class="form-control mr-sm-2" type="text" />
-                            <button class="btn btn-primary my-2 my-sm-0" type="submit">
-                                Search
-                            </button>
+                            <div class="md-form my-0">
+                                <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+                            </div>
                         </form>
-                        <ul class="navbar-nav ml-md-auto">
-                            <li class="nav-item active">
-                                <a class="nav-link" href="#">Link <span class="sr-only">(current)</span></a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown">Dropdown link</a>
-                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                                    <a class="dropdown-item" href="#">Action</a> <a class="dropdown-item" href="#">Another action</a> <a class="dropdown-item" href="#">Something else here</a>
-                                    <div class="dropdown-divider">
-                                    </div> <a class="dropdown-item" href="#">Separated link</a>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
-                <div class="row">
-                    <div id="left" class="col-md-3">
-                        <ul class="list-group list-group-flush">
-                            <router-link to="/home"><li class="list-group-item">Home</li></router-link>
-                            <router-link to="/posts"><li class="list-group-item">Posts</li></router-link>
-                        </ul>
-                    </div>
-                    <div id="center" class="col-md-6"><router-view/></div>
-                    <div id="right" class="col-md-3"></div>
-                </div>
-            </div>
-        </div>
-        <!--<nav id="sidebar" class="navbar navbar-expand-lg navbar-light bg-light">
-
-            <div
-                    id="navbarNav"
-                    class="collapse navbar-collapse"
-            >
-                <ul class="list-group">
-                    <router-link
-                            class="list-group-item"
-                            tag="li"
-                            to="/home"
-                            active-class="active"
-                    >
-                        <a class="nav-link">Home</a>
-                    </router-link>
-                    <router-link
-                            class="list-group-item"
-                            tag="li"
-                            to="/posts"
-                            active-class="active"
-                    >
-                        <a class="nav-link">Posts</a>
-                    </router-link>
-                    <li
-                            v-if="isAuthenticated"
-                            class="nav-item"
-                    >
-                        <a
-                                class="nav-link"
-                                href="/api/security/logout"
-                        >Logout</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-4" data-toggle="dropdown"
+                           aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-user"></i> Profile </a>
+                        <div class="dropdown-menu dropdown-menu-right dropdown-info" aria-labelledby="navbarDropdownMenuLink-4">
+                            <a class="dropdown-item" href="#">My account</a>
+                            <a class="dropdown-item" href="#" @click="logout()">Log out</a>
+                        </div>
                     </li>
                 </ul>
             </div>
         </nav>
-        <router-view />
-        -->
+        <!-- Header -->
+
+        <!-- Content -->
+        <div class="container-fluid">
+            <div class="row">
+                <div id="left" class="col-md-3 px-0">
+                    <ul class="list-group">
+                        <router-link to="/home"
+                                     class="list-group-item list-group-item-action"
+                                     active-class="active"
+                                     @click="activate(1)" :class="{active: isActive == 1}">
+                            <div class="md-v-line"></div><i class="fas fa-laptop mr-4 pr-3"></i>Home
+                        </router-link>
+                        <router-link to="/posts"
+                                     class="list-group-item list-group-item-action"
+                                     active-class="active"
+                                     @click="activate(2)" :class="{active: isActive == 2}">
+                            <div class="md-v-line"></div><i class="fas fa-laptop mr-4 pr-3"></i>Posts
+                        </router-link>
+                    </ul>
+                </div>
+                <div id="center" class="col-md-6"><router-view/></div>
+                <div id="right" class="col-md-3"></div>
+            </div>
+        </div>
+        <!-- Content -->
+        <footer class="page-footer font-small cyan darken-3">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 py-3">
+                        <div class="mb-5 flex-center">
+                            <a class="fb-ic">
+                                <i class="fab fa-facebook-f fa-lg white-text mr-md-5 mr-3 fa-2x"> </i>
+                            </a>
+                            <a class="tw-ic">
+                                <i class="fab fa-twitter fa-lg white-text mr-md-5 mr-3 fa-2x"> </i>
+                            </a>
+                            <a class="gplus-ic">
+                                <i class="fab fa-google-plus-g fa-lg white-text mr-md-5 mr-3 fa-2x"> </i>
+                            </a>
+                            <a class="li-ic">
+                                <i class="fab fa-linkedin-in fa-lg white-text mr-md-5 mr-3 fa-2x"> </i>
+                            </a>
+                            <a class="ins-ic">
+                                <i class="fab fa-instagram fa-lg white-text mr-md-5 mr-3 fa-2x"> </i>
+                            </a>
+                            <a class="pin-ic">
+                                <i class="fab fa-pinterest fa-lg white-text fa-2x"> </i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Copyright -->
+            <div class="footer-copyright text-center py-3">© 2020 Copyright:
+                <a href="https://mdbootstrap.com/education/bootstrap/"> MDBootstrap.com</a>
+            </div>
+            <!-- Copyright -->
+        </footer>
+        <!-- Footer -->
     </div>
+    <!-- Wrapper -->
 </template>
 
 <script>
@@ -104,9 +98,24 @@
 
     export default {
         name: "App",
+        data: function () {
+            return {
+                isActive: 0,
+                UserName: ""
+            };
+        },
         computed: {
             isAuthenticated() {
                 return this.$store.getters["security/isAuthenticated"]
+            },
+        },
+        methods:{
+            logout:function() {
+                //response=> this.$router.go(response.config.url)
+                this.$store.dispatch("security/logout").then(() => this.$router.push("/login"));
+            },
+            activate:function(el){
+                this.isActive = el;
             },
         },
         created() {

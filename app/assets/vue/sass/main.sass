@@ -1,4 +1,10 @@
 // Required
+// Offline
+//@import "~bootstrap/scss/bootstrap"
+//$image-path: '~mdbvue/lib/img'  // image path variable update
+//@import '~mdbvue/lib/scss/mdb-free' // main mdb scss free file
+//@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap') // font import
+
 @import "node_modules/bootstrap/scss/functions";
 @import "node_modules/bootstrap/scss/variables";
 @import "node_modules/bootstrap/scss/mixins";
@@ -15,5 +21,11 @@
   @include make-col-ready()
   @include media-breakpoint-up(md)
     @include make-col(6.5)
-#rifht
+.md-v-line
+    position: absolute
+    border-left: 1px solid rgba(0,0,0,.125)
+    height: 50px
+    top: 0px
+    left: 54px
+
 
