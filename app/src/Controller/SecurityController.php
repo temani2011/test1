@@ -31,8 +31,9 @@ final class SecurityController extends AbstractController
      */
     public function loginAction(): JsonResponse
     {
-        /** @var User $user */
-        //shortcut for: $this->get('security.context')->getToken()->getUser()
+        // returns your User object, or null if the user is not authenticated
+        // use inline documentation to tell your editor your exact User class
+        /** @var \App\Entity\User|null $user */
         $user = $this->getUser();
         return new JsonResponse($this->serializer->serialize($user, JsonEncoder::FORMAT));
         $userClone = clone $user;

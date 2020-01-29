@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Exception;
 use Ramsey\Uuid\Uuid;
@@ -70,9 +72,16 @@ class User implements UserInterface
      */
     private $updated;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\News", mappedBy="user")
+     */
+    private $news;
+
+
     public function __construct()
     {
         $this->roles = [];
+        $this->news = new ArrayCollection();
     }
 
     /**
@@ -176,5 +185,36 @@ class User implements UserInterface
     public function getUpdated(): ?DateTime
     {
         return $this->updated;
+    }
+
+    /**
+     * @return Collection|News[]
+     */
+    public function getNews(): Collection
+    {
+        return $this->news;
+    }
+
+    public function addNews(News $news): self
+    {
+        if (!$this->news->contains($news)) {
+            $this->news[] = $news;
+            $news->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNews(News $news): self
+    {
+        if ($this->news->contains($news)) {
+            $this->news->removeElement($news);
+            // set the owning side to null (unless already changed)
+            if ($news->getUser() === $this) {
+                $news->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }

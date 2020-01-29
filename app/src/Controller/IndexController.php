@@ -43,7 +43,9 @@ final class IndexController extends AbstractController
      */
     public function indexAction(): Response
     {
-        /** @var User|null $user */
+        // returns your User object, or null if the user is not authenticated
+        // use inline documentation to tell your editor your exact User class
+        /** @var \App\Entity\User|null $user */
         $user = $this->getUser();
         $data = null;
         if (! empty($user)) {

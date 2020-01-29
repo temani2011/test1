@@ -26,7 +26,7 @@ security:
 
             # activate different ways to authenticate
 
-            # http_basic: true
+            http_basic: true
             # https://symfony.com/doc/current/security.html#a-configuring-how-your-users-will-authenticate
 
             # form_login: true

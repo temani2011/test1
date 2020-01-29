@@ -16,7 +16,12 @@
         <env name="KERNEL_CLASS" value="App\Kernel" />
         <env name="DATABASE_URL" value="mysql://foo:bar@mysql_tests/tests" force="true" />
     </php>
-
+    <!--
+    <php>
+        <ini name="error_reporting" value="-1"/>
+        <env name="MONGODB_URI" value="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=100"/>
+        <env name="MONGODB_DATABASE" value="phplib_test"/>
+    </php>-->
     <testsuites>
         <testsuite name="Project Test Suite">
             <directory>tests</directory>
