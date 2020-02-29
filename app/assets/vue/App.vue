@@ -1,6 +1,6 @@
 <template>
     <!-- Wrapper -->
-    <div class="container-fluid">
+    <div class="container-fluid" id="wrapper">
         <!-- Header -->
         <nav class="navbar navbar-expand-lg navbar-dark cyan darken-3">
             <a class="navbar-brand" href="#">Navbar</a>
@@ -17,11 +17,11 @@
                             </div>
                         </form>
                     </li>
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown" v-if="isAuthenticated">
                         <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-4" data-toggle="dropdown"
                            aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-user"></i> Profile </a>
-                        <div class="dropdown-menu dropdown-menu-right dropdown-info" aria-labelledby="navbarDropdownMenuLink-4">
+                        <div class="dropdown-menu dropdown-menu-right dropdown-info pb-0" aria-labelledby="navbarDropdownMenuLink-4">
                             <a class="dropdown-item" href="#">My account</a>
                             <a class="dropdown-item" href="#" @click="logout()">Log out</a>
                         </div>
@@ -32,29 +32,37 @@
         <!-- Header -->
 
         <!-- Content -->
-        <div class="container-fluid">
+        <div class="container-fluid" id="content">
             <div class="row">
                 <div id="left" class="col-md-3 px-0">
                     <ul class="list-group">
                         <router-link to="/home"
                                      class="list-group-item list-group-item-action"
                                      active-class="active"
-                                     @click="activate(1)" :class="{active: isActive == 1}">
+                                     :class="currentPage.includes('home') ? activeClass : ''">
                             <div class="md-v-line"></div><i class="fas fa-laptop mr-4 pr-3"></i>Home
                         </router-link>
                         <router-link to="/posts"
                                      class="list-group-item list-group-item-action"
                                      active-class="active"
-                                     @click="activate(2)" :class="{active: isActive == 2}">
-                            <div class="md-v-line"></div><i class="fas fa-laptop mr-4 pr-3"></i>Posts
+                                     :class="currentPage.includes('posts') ? activeClass : ''">
+                            <div class="md-v-line"></div><i class="fas fa-blog mr-4 pr-3"></i>Posts
+                        </router-link>
+                        <router-link to="/news"
+                                     class="list-group-item list-group-item-action"
+                                     active-class="active"
+                                     :class="currentPage.includes('news') ? activeClass : ''">
+                            <div class="md-v-line"></div><i class="fas fa-newspaper mr-4 pr-3"></i>News
                         </router-link>
                     </ul>
                 </div>
                 <div id="center" class="col-md-6"><router-view/></div>
-                <div id="right" class="col-md-3"></div>
+                <div id="right" class="col-md-3 px-0"></div>
             </div>
         </div>
         <!-- Content -->
+
+        <!-- Footer -->
         <footer class="page-footer font-small cyan darken-3">
             <div class="container">
                 <div class="row">
@@ -100,11 +108,14 @@
         name: "App",
         data: function () {
             return {
-                isActive: 0,
-                UserName: ""
+                UserName: "",
+                activeClass: "active"
             };
         },
         computed: {
+            currentPage() {
+                return this.$route.fullPath;
+            },
             isAuthenticated() {
                 return this.$store.getters["security/isAuthenticated"]
             },
@@ -112,10 +123,9 @@
         methods:{
             logout:function() {
                 //response=> this.$router.go(response.config.url)
-                this.$store.dispatch("security/logout").then(() => this.$router.push("/login"));
-            },
-            activate:function(el){
-                this.isActive = el;
+                this.$store.dispatch("security/logout").then(responce => {
+                    if(responce.status ===  200) this.$router.push("/login");
+                });
             },
         },
         created() {

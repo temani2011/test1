@@ -4,7 +4,9 @@ const AUTHENTICATING = "AUTHENTICATING",
     AUTHENTICATING_SUCCESS = "AUTHENTICATING_SUCCESS",
     AUTHENTICATING_ERROR = "AUTHENTICATING_ERROR",
     PROVIDING_DATA_ON_REFRESH_SUCCESS = "PROVIDING_DATA_ON_REFRESH_SUCCESS",
-    LOGOUT_ACTION = "LOGOUT_ACTION";
+    LOGOUT_ACTION = "LOGOUT_ACTION",
+    LOGOUT_SUCCESS = "LOGOUT_SUCCESS",
+    LOGOUT_ERROR = "LOGOUT_ERROR";
 
 export default {
     namespaced: true,
@@ -29,8 +31,8 @@ export default {
         },
         hasRole(state) {
             return role => {
-                //return state.user.roles[0].indexOf(role) !== -1;
-                return state.user.roles[0].indexOf(role) !== -1;
+                if(typeof user !== 'undefined')
+                    return state.user.roles[0].indexOf(role) !== -1;
             }
         }
     },
@@ -45,7 +47,7 @@ export default {
             state.isLoading = false;
             state.error = null;
             state.isAuthenticated = true;
-            state.user = JSON.parse(user);
+            state.user = user;
         },
         [AUTHENTICATING_ERROR](state, error) {
             state.isLoading = false;
@@ -60,10 +62,20 @@ export default {
             state.user = payload.user;
         },
         [LOGOUT_ACTION](state){
+            state.isLoading = true;
+            state.error = null;
+            state.isAuthenticated = false;
+        },
+        [LOGOUT_SUCCESS](state){
             state.isLoading = false;
-            state.error = false;
+            state.error = null;
             state.isAuthenticated = false;
             state.user = null;
+        },
+        [LOGOUT_ERROR](state, error){
+            state.isLoading = false;
+            state.error = error;
+            state.isAuthenticated = true;
         }
     },
     actions: {
@@ -71,6 +83,7 @@ export default {
             commit(AUTHENTICATING);
             try {
                 let response = await SecurityAPI.login(payload.login, payload.password);
+                console.log(response);
                 commit(AUTHENTICATING_SUCCESS, response.data);
                 return response.data;
             } catch (error) {
@@ -80,8 +93,15 @@ export default {
         },
         async logout({commit}){
             commit(LOGOUT_ACTION);
-            let response = await SecurityAPI.logout();
-            return response;
+            try {
+                let response = await SecurityAPI.logout();
+                commit(LOGOUT_SUCCESS);
+                console.log(response);
+                return response;
+            } catch (error) {
+                commit(LOGOUT_ERROR, error);
+                return null;
+            }
         },
         onRefresh({commit}, payload) {
             commit(PROVIDING_DATA_ON_REFRESH_SUCCESS, payload);

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e613af0411e5a6655518810b74660c71",
+    "content-hash": "7e7487d982f527a2a3de5aa1399c6707",
     "packages": [
         {
             "name": "alcaeus/mongo-php-adapter",
@@ -1705,16 +1705,16 @@
         },
         {
             "name": "mongodb/mongodb",
-            "version": "1.5.1",
+            "version": "1.5.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mongodb/mongo-php-library.git",
-                "reference": "32cfb9bbd0bc60a5a13ca9eab7e4803226a5d4a7"
+                "reference": "9480f994de9f70e2ae5a946b21e6fc04bf5a6c3c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/32cfb9bbd0bc60a5a13ca9eab7e4803226a5d4a7",
-                "reference": "32cfb9bbd0bc60a5a13ca9eab7e4803226a5d4a7",
+                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/9480f994de9f70e2ae5a946b21e6fc04bf5a6c3c",
+                "reference": "9480f994de9f70e2ae5a946b21e6fc04bf5a6c3c",
                 "shasum": ""
             },
             "require": {
@@ -1769,7 +1769,7 @@
                 "mongodb",
                 "persistence"
             ],
-            "time": "2019-10-09T14:34:41+00:00"
+            "time": "2019-11-15T08:21:00+00:00"
         },
         {
             "name": "ocramius/package-versions",

@@ -33,12 +33,11 @@ final class SecurityController extends AbstractController
     {
         // returns your User object, or null if the user is not authenticated
         // use inline documentation to tell your editor your exact User class
-        /** @var \App\Entity\User|null $user */
+        /** @var User $user */
         $user = $this->getUser();
-        return new JsonResponse($this->serializer->serialize($user, JsonEncoder::FORMAT));
         $userClone = clone $user;
         $userClone->setPassword('');
-        $data = $this->serializer->serialize($userClone, JsonEncoder::FORMAT);
+        $data = $this->serializer->serialize($userClone, JsonEncoder::FORMAT, ['groups' => ['User_default']]);
 
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }

@@ -1,0 +1,167 @@
+<template>
+    <div>
+        <div v-if="isLoading" class="row col">
+            <p>Loading...</p>
+        </div>
+        <div v-else-if="state === 'new' || state === 'edit'">
+            <!-- Material input -->
+            <div class="md-form form-group mt-5">
+                <input type="text" v-model="title" class="form-control" id="formGroupExampleInputMD">
+                <label for="formGroupExampleInputMD">Title</label>
+            </div>
+            <!-- Material input -->
+            <div class="md-form">
+                <textarea v-model="coverText" class="form-control md-textarea" length="120" rows="1"></textarea>
+                <label for="textarea-char-counter">Type your text</label>
+            </div>
+            <!-- File input -->
+            <form class="md-form">
+                <div class="file-field">
+                    <div class="btn btn-primary btn-sm float-left">
+                        <span>Choose file</span>
+                        <input type="file" @change="fileListener">
+                    </div>
+                    <div class="file-path-wrapper">
+                        <input v-model="coverImage" class="file-path validate" type="text" placeholder="Upload your file">
+                    </div>
+                </div>
+                <button @click="state === 'new' ? createNews() : editNews()" type="button" class="btn btn-primary">Send</button>
+            </form>
+            <tinymce id="editor" v-model="text" ref="tm" @editorInit="editorInit"></tinymce>
+        </div>
+        <!-- Card Light -->
+        <div class="card mb-3half shadow-light">
+
+            <!-- Social shares button -->
+            <div class="card-header white mb-1 pt-3half pb-0 border-0 text-dark">
+                <!-- Category -->
+                <router-link class="text-dark mr-2" :to="'#'"><i class="fas fa-globe-europe pr-1"></i> Общие </router-link>
+                <!-- Author -->
+                <router-link class="text-dark" :to="'#'"> <u> {{ author }} </u> </router-link>
+                <!-- Date -->
+                <div class="d-inline float-right text-muted"><i class="far fa-clock pr-1"></i> {{ created }} </div>
+            </div>
+            <!--
+            <div>
+                <ul class="list-unstyled list-inline m-0">
+                    <li class="list-inline-item pr-2"><a href="#" class="text-muted"><i class="fas fa-bookmark pr-1"></i></a></li>
+                    <li class="list-inline-item pr-2"><a href="#" class="text-muted"><i class="fas fa-share-alt pr-1"></i></a></li>
+                    <li class="list-inline-item pr-2"><router-link :to="'/news/' + id" class="text-muted"><i class="fas fa-comments pr-1"></i></router-link></li>
+                    <li class="list-inline-item float-right"><a href="#" class="text-muted"><i class="fas fa-heart pr-1"> </i>5</a></li>
+                </ul>
+            </div>-->
+
+            <!-- Card Content-Header -->
+            <div class="card-body pt-0 pb-3">
+                <!-- Title -->
+                <h4 class="card-title mb-0" style="font-weight: 500"> {{ title }} </h4>
+                <!-- Text -->
+                <p class="card-text mb-0"> {{ coverText }} </p>
+            </div>
+
+            <!-- Card Content -->
+            <div class="card-body pt-0 pb-3">
+                <!-- Text -->
+                <p class="card-text mb-0"> <span v-html="text"></span> </p>
+            </div>
+
+            <!-- Card footer -->
+            <div class="card-footer pb-3half border-0 pt-3 white">
+                <ul class="list-unstyled list-inline m-0">
+                    <li class="list-inline-item pr-2"><a href="#" class="text-muted"><i class="fas fa-bookmark pr-1"></i></a></li>
+                    <li class="list-inline-item pr-2"><a href="#" class="text-muted"><i class="fas fa-share-alt pr-1"></i></a></li>
+                    <li class="list-inline-item pr-2"><router-link :to="'/news/' + id" class="text-muted"><i class="fas fa-comments pr-1"></i></router-link></li>
+                    <li class="list-inline-item float-right"><a href="#" class="text-muted"><i class="fas fa-heart pr-1"> </i>5</a></li>
+                </ul>
+            </div>
+
+        </div>
+        <!-- Card Light -->
+    </div>
+</template>
+<script>
+    import tinymce from 'vue-tinymce-editor';
+    export default {
+        components:{
+            tinymce
+        },
+        name: "Article",
+        data() {
+            return {
+                state: 'select',
+                id: "",
+                coverText: "",
+                coverImage: "",
+                title: "",
+                text: "",
+                created: "",
+                author: ""
+            }
+        },
+        created() {
+            console.log(this.$route.params.id);
+            this.$route.params.id !== 'new' ? this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
+                    this.id = responce.id;
+                    this.title = responce.title;
+                    this.text = responce.text;
+                    this.created = responce.created;
+                    this.author = responce.user.login;
+                }) : this.state = 'new';
+        },
+        computed: {
+            isLoading() {
+                return this.$store.getters["news/isLoading"];
+            },
+            hasError() {
+                return this.$store.getters["news/hasError"];
+            },
+            getError() {
+                return this.$store.getters["news/getError"];
+            },
+            hasNews() {
+                return this.$store.getters["news/hasNews"];
+            },
+            getNews() {
+                return this.$store.getters["news/getNews"];
+            },
+            canCreatePost() {
+                return this.$store.getters["security/hasRole"]("ROLE_FOO");
+            },
+        },
+        methods: {
+            editorInit() {
+                this.$refs.tm.editor.setContent(this.text);
+            },
+            fileListener(event){
+                console.log(event.target.files);
+            },
+            editform(event){
+                this.state = 'edit';
+            },
+            async editNews(event){
+                console.log(this.id,
+                    this.coverText,
+                    this.coverImage,
+                    this.title,
+                    this.text);
+                let p = [this.id,
+                    this.coverText,
+                    this.coverImage,
+                    this.title,
+                    this.text];
+                const result = await this.$store.dispatch("news/putNews", p);
+            },
+            async createNews(event){
+                console.log(this.coverText,
+                    this.coverImage,
+                    this.title,
+                    this.text);
+                let p = [this.coverText,
+                    this.coverImage,
+                    this.title,
+                    this.text];
+                const result = await this.$store.dispatch("news/postNews", p);
+            }
+        }
+    };
+</script>

@@ -13,44 +13,38 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
-use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler;
-
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 /**
  * @Rest\Route("/api")
- * @IsGranted("IS_AUTHENTICATED_FULLY")
  */
 final class NewsController extends AbstractController
 {
-    /** @var EntityManagerInterface */
+    /**
+     * @var EntityManagerInterface
+     */
     private $em;
 
-    /** @var SerializerInterface */
+    /**
+     * @var SerializerInterface
+     */
     private $serializer;
 
-    private $psh;
+    /**
+     * @var ValidatorInterface
+     */
+    private $validator;
 
-    private $ab;
-
-    private $SessionInterface, $PdoSessionHandler;
-
-    public function __construct(SessionInterface $SessionInterface,
-                                PdoSessionHandler $PdoSessionHandler,
-                                EntityManagerInterface $em,
-                                SerializerInterface $serializer)
-    {
-
-        $this->SessionInterface = $SessionInterface;
-        $this->PdoSessionHandler = $PdoSessionHandler;
+    public function __construct(EntityManagerInterface $em,
+                                SerializerInterface $serializer,
+                                ValidatorInterface $validator){
         $this->em = $em;
         $this->serializer = $serializer;
+        $this->validator = $validator;
     }
 
     /**
@@ -63,21 +57,24 @@ final class NewsController extends AbstractController
      */
     public function postNewsAction(Request $request): JsonResponse
     {
-        $title = $request->get('title');
-        $text = $request->get('text');
-        if (empty($title)) {
-            throw new BadRequestHttpException('title cannot be empty');
-        }
-        if (empty($text)) {
-            throw new BadRequestHttpException('text cannot be empty');
-        }
+        $title = $request->request->get("title");
+        $text = $request->request->get('text');
         $news = new News();
-        $news->setTitle($title);
-        $news->setText($text);
-        $news->setUser($this->getUser());
-        $this->em->persist($news);
-        $this->em->flush();
-        $data = $this->serializer->serialize($news, JsonEncoder::FORMAT);
+        $news->setTitle($title)
+            ->setText($text)
+            ->setUser($this->getUser());
+        $errors = $this->validator->validate($news);
+        if(count($errors) > 0) {
+            throw new BadRequestHttpException((string) $errors);
+        }
+        try {
+            $this->em->persist($news);
+            $this->em->flush();
+        }
+        catch(\Exception $e){
+            throw new BadRequestHttpException($e);
+        }
+        $data = $this->serializer->serialize($news, JsonEncoder::FORMAT, ['groups' => ['News_default']]);
         return new JsonResponse($data, Response::HTTP_CREATED, [], true);
     }
 
@@ -87,42 +84,89 @@ final class NewsController extends AbstractController
      */
     public function getAllNewsAction(): JsonResponse
     {
-        $posts = $this->em->getRepository(News::class)->findBy([],['created' => 'DESC']);
-        $data = $this->serializer->serialize($posts, JsonEncoder::FORMAT);
+        $news = $this->em->getRepository(News::class)->findBy([],['created' => 'DESC']);
+        $data = $this->serializer->serialize($news, JsonEncoder::FORMAT, ['groups' => ['News_default']]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
      * Get news article by id
      * @Rest\Get("/news/{id}", name="getNewsAction")
-     * @param UuidInterface $request
+     * @param string $id
      * @return JsonResponse
      */
-    public function getNewsAction(UuidInterface $id): JsonResponse
+    public function getNewsAction(string $id): JsonResponse
     {
-        $posts = $this->em->getRepository(News::class)->findById(['id' => $id],['created' => 'DESC']);
-        $data = $this->serializer->serialize($posts, JsonEncoder::FORMAT);
-        return new JsonResponse($data, Response::HTTP_FOUND, [], true);
+        if (!Uuid::isValid($id)) {
+            throw new \InvalidArgumentException(sprintf('%s is not a valid Uuid.', $id));
+        }
+        $news = $this->em->getRepository(News::class)->find(Uuid::fromString($id));
+        if (!$news) {
+            throw new BadRequestHttpException('No product found for id '.$id);
+        }
+        $data = $this->serializer->serialize($news, JsonEncoder::FORMAT, ['groups' => ['News_default']]);
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
-     *  Upadte an article news
+     * Update an article news
      * @Rest\Put("/news/{id}", name="putNewsAction")
-     * @param UuidInterface $id
+     * @param string $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function putNewsAction(UuidInterface $id, Request $request): JsonResponse
+    public function putNewsAction(string $id, Request $request): JsonResponse
     {
-        $title = $request->get('title');
-        $text = $request->get('text');
-        if (empty($title)) {
-            throw new BadRequestHttpException('title cannot be empty');
+        $data = json_decode($request->getContent(), true);
+        array_key_exists('title',$data) ? $title = $data['title'] : $title = "";
+        array_key_exists('text',$data) ? $text = $data['text'] : $text = "";
+        if (!Uuid::isValid($id)) {
+            throw new \InvalidArgumentException(sprintf('%s is not a valid Uuid.', $id));
         }
-        if (empty($text)) {
-            throw new BadRequestHttpException('text cannot be empty');
+        $news = $this->em->getRepository(News::class)->find(Uuid::fromString($id));
+        if (!$news) {
+            throw new BadRequestHttpException('No product found for id '.$id);
         }
+        $news->setTitle($title)
+            ->setText($text);
+        $errors = $this->validator->validate($news);
+        if(count($errors) > 0) {
+            throw new BadRequestHttpException((string) $errors);
+        }
+        try {
+            $this->em->persist($news);
+            $this->em->flush();
+        }
+        catch(\Exception $e){
+            throw new BadRequestHttpException($e);
+        }
+        $data = $this->serializer->serialize($news, JsonEncoder::FORMAT, ['groups' => ['News_default']]);
+        return new JsonResponse($data,Response::HTTP_OK, [], true);
+    }
 
-        return new JsonResponse(Response::HTTP_FOUND, [], true);
+    /**
+     * Delete an article news
+     * @Rest\Delete("/news/{id}", name="deleteNewsAction")
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function deleteNewsAction(string $id): JsonResponse
+    {
+        if (!Uuid::isValid($id)) {
+            throw new \InvalidArgumentException(sprintf('%s is not a valid Uuid.', $id));
+        }
+        $news = $this->em->getRepository(News::class)->find(Uuid::fromString($id));
+        if (!$news) {
+            throw new BadRequestHttpException('No product found for id '.$id);
+        }
+        try {
+            $this->em->remove($news);
+            $this->em->flush();
+        }
+        catch(\Exception $e){
+            throw new BadRequestHttpException($e);
+        }
+        $data = $this->serializer->serialize($news, JsonEncoder::FORMAT, ['groups' => ['News_default']]);
+        return new JsonResponse($data,Response::HTTP_OK , [], true);
     }
 }

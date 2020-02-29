@@ -45,13 +45,13 @@ final class IndexController extends AbstractController
     {
         // returns your User object, or null if the user is not authenticated
         // use inline documentation to tell your editor your exact User class
-        /** @var \App\Entity\User|null $user */
+        /** @var User|null $user */
         $user = $this->getUser();
         $data = null;
-        if (! empty($user)) {
+        if (!empty($user)) {
             $userClone = clone $user;
             $userClone->setPassword('');
-            $data = $this->serializer->serialize($userClone, JsonEncoder::FORMAT);
+            $data = $this->serializer->serialize($userClone, JsonEncoder::FORMAT, ['groups' => ['User_default']]);
         }
 
         return $this->render('base.html.twig', [

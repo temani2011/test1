@@ -9,18 +9,33 @@
 @import "node_modules/bootstrap/scss/variables";
 @import "node_modules/bootstrap/scss/mixins";
 
-//$main-bg-color: #f4f4f4
-#wrapper
-  //display: flex
+$padding-value: 15px
 
-#left
-  @include make-col-ready()
-  @include media-breakpoint-up(md)
-    @include make-col(2.5)
-#center
-  @include make-col-ready()
-  @include media-breakpoint-up(md)
-    @include make-col(6.5)
+%wrapper-padding
+  padding-top: $padding-value
+  padding-bottom: $padding-value
+
+%content-padding
+  padding-top: $padding-value
+  padding-bottom: $padding-value
+
+#wrapper
+  @extend %wrapper-padding
+  #content
+    @extend %content-padding
+    #left
+      @include make-col-ready()
+      @include media-breakpoint-up(md)
+      @include make-col(2.5)
+    #center
+      @include make-col-ready()
+      @include media-breakpoint-up(md)
+      @include make-col(7)
+    #right
+      @include make-col-ready()
+      @include media-breakpoint-up(md)
+        @include make-col(2.5)
+
 .md-v-line
     position: absolute
     border-left: 1px solid rgba(0,0,0,.125)
@@ -28,4 +43,22 @@
     top: 0px
     left: 54px
 
+.card .activator
+  position: absolute
+  right: 0
+  font-size: 1.2rem
 
+.pb-2half
+  padding-bottom: ($spacer * .75) !important
+
+.pt-2half
+  padding-top: ($spacer * .75) !important
+
+.pt-3half
+  padding-top: ($spacer * 1.25) !important
+
+.pb-3half
+  padding-bottom: ($spacer * 1.25) !important
+
+.mb-3half
+  margin-bottom: ($spacer * 1.25) !important
