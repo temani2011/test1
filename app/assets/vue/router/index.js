@@ -16,7 +16,7 @@ let router = new VueRouter({
         { path: "/login", component: Login },
         { path: "/posts", component: Posts, meta: { requiresAuth: true } },
         { path: "/news", component: News },
-        { path: "/news/:id", component: NewsArticle },
+        { path: "/news/:id", name: 'article', component: NewsArticle, props: true },
         { path: "*", redirect: "/home" }
     ],
 });

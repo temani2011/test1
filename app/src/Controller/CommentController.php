@@ -6,7 +6,9 @@ namespace App\Controller;
 
 use App\Document\Bucket;
 use App\Document\Comment;
+use App\Entity\User;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +27,11 @@ use Ramsey\Uuid\UuidInterface;
 final class CommentController extends AbstractController
 {
     /**
+     * @var EntityManager
+     */
+    private $em;
+
+    /**
      * @var DocumentManager
      */
     private $dm;
@@ -39,9 +46,11 @@ final class CommentController extends AbstractController
      */
     private $validator;
 
-    public function __construct(DocumentManager $dm,
+    public function __construct(EntityManagerInterface $em,
+                                DocumentManager $dm,
                                 SerializerInterface $serializer,
                                 ValidatorInterface $validator){
+        $this->em = $em;
         $this->dm = $dm;
         $this->serializer = $serializer;
         $this->validator = $validator;
@@ -52,34 +61,68 @@ final class CommentController extends AbstractController
      * @param Request $request
      * @return JsonResponse
      */
+
     public function mongoPost(Request $request) : JsonResponse
     {
+        $pid = $request->request->get('pid');
         $comment = new Comment();
-        $bucket = new Bucket();
         $comment->setText($request->request->get('text'))
             ->setAuthor($request->request->get('author'));
+        $bucket = $this->dm->getRepository(Bucket::class)->findBy(['postId'=>$pid], ['comments.createdAt' => 'DESC']);
+        if(!$bucket) $bucket = new Bucket($pid, 0); // comments are empty
+        else if($bucket[0]->getCount() >= 50) $bucket = new Bucket($pid, $bucket[0]->getPage()); // new bucket page
+        else $bucket = $bucket[0]; // current bucket
+        $comment->setSlug($bucket->getId() . "_" . $pid . "_" . $bucket->getCount());
         $bucket->addComments($comment);
-
-        //$dm = $this->get('doctrine_mongodb')->getManager();
         try {
-            $this->dm->persist($comment);
+            $this->dm->persist($bucket);
             $this->dm->flush();
         }
         catch(\Exception $e){
-            throw new BadRequestHttpException($e);
+            throw new BadRequestHttpException($e->getMessage());
         }
+        $user = $this->em->getRepository(User::class)->findOneBy(['id' => $comment->getAuthor()]);
+        //$user_json = $this->serializer->serialize($user->getLogin(), JsonEncoder::FORMAT);
+        $comment->setAuthor($user->getLogin());
         $data = $this->serializer->serialize($comment, JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @Rest\Get("/comment")
+     * @Rest\Get("/comment/slug={slug}")
+     * @param string $slug
      * @return JsonResponse
      */
-    public function mongoGet() : JsonResponse
+    public function mongoGet(string $slug) : JsonResponse
     {
-        $comment = $this->dm->getRepository(Bucket::class)->findBy([]);
-        $data = $this->serializer->serialize($comment, JsonEncoder::FORMAT);
+        $bucket = $this->dm->getRepository(Bucket::class)->findOneBy(['comments.slug' => $slug]);
+        if(!$bucket) throw new BadRequestHttpException("Comment not found");
+        $fcomment = [];
+        foreach ($bucket->getComments() as $comment)
+            if($comment->getSlug() == $slug)
+                $fcomment = $comment;
+        $data = $this->serializer->serialize($fcomment, JsonEncoder::FORMAT);
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * @Rest\Get("/comment/{pid}")
+     * @return JsonResponse
+     */
+    public function mongoGetAll(string $pid) : JsonResponse
+    {
+        $buckets = $this->dm->getRepository(Bucket::class)->findBy(['postId' => $pid]);
+        if(!$buckets) throw new BadRequestHttpException("Comments are empty");
+        $comments = [];
+        $users = [];
+        foreach ($buckets as $bucket)
+            $comments = $bucket->getComments();
+        foreach ($comments as $comment){
+            $user = $this->em->getRepository(User::class)->findOneBy(['id' => $comment->getAuthor()]);
+            //$user_json = $this->serializer->serialize($user->getLogin(), JsonEncoder::FORMAT);
+            $comment->setAuthor($user->getLogin());
+        }
+        $data = $this->serializer->serialize($comments, JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 

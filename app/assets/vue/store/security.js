@@ -31,9 +31,12 @@ export default {
         },
         hasRole(state) {
             return role => {
-                if(typeof user !== 'undefined')
-                    return state.user.roles[0].indexOf(role) !== -1;
+                if(state.user == null) return false;
+                return state.user.roles[0].indexOf(role) !== -1;
             }
+        },
+        getUserData(state){
+            return state.user;
         }
     },
     mutations: {

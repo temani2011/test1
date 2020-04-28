@@ -3,15 +3,27 @@
         <div v-if="isLoading" class="row col">
             <p>Loading...</p>
         </div>
-        <div v-else v-for="item in getNews">
+        <div v-else>
+            <div v-if="canCreatePost">
+                <div class="card mb-3half shadow-light">
+                    <router-link v-if="canCreatePost" :to="{ name: 'article', params: { id: 'new', msg:'new'} }" type="button d-block">
+                                 Create New
+                    </router-link>
+                </div>
+            </div>
+            <div v-for="item in getNews">
             <!-- Button -->
             <button v-if="canCreatePost" :id="item.id" @click="DeleteNews($event)" type="button d-inline-block"
                     class="close ml-3 mt-1" aria-label="Close">
                 <i class="fa fa-times black-text" aria-hidden="true"></i>
             </button>
+            <!-- Button -->
+            <router-link v-if="canCreatePost" :id="item.id" :to="{ name: 'article', params: { id: item.id, msg:'edit'} }" type="button d-block"
+                    class="close ml-3 mt-1" aria-label="edit">
+                <i class="fa fa-pen black-text" aria-hidden="true"></i>
+            </router-link>
             <!-- Card Light -->
             <div class="card mb-3half shadow-light">
-
                 <!-- Social shares button -->
                 <!--<a class="activator waves-effect waves-light mr-4"><i class="fas fa-share-alt"></i></a>-->
                 <div class="card-header white mb-1 pt-3half pb-0 border-0 text-dark">
@@ -55,6 +67,7 @@
 
             </div>
         </div>
+        </div>
     </div>
 </template>
 <script>
@@ -63,9 +76,8 @@
     export default {
         name: "News",
         components: {
-           // Article,
             ErrorMessage
-        } ,
+        },
         data() {
             return {
                 defaultImage: "https://mdbootstrap.com/img/Photos/Horizontal/Nature/4-col/img%20%28131%29.jpg",

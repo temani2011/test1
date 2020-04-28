@@ -35,12 +35,15 @@ class Bucket
     protected $count;
 
     /**
-     * @@MongoDB\EmbedMany(targetDocument="App\Entity\Comment")
+     * @MongoDB\EmbedMany(targetDocument="App\Document\Comment")
      */
-    private $comments = [];
+    protected $comments = [];
 
-    public function __construct()
+    public function __construct($id, $page)
     {
+        $this->count = 0;
+        $this->page = ++$page;
+        $this->postId = $id;
         $this->comments = new ArrayCollection();
     }
 
@@ -53,7 +56,20 @@ class Bucket
     }
 
     /**
-     * @return page $id
+     * @return postId
+     */
+    public function getPostId()
+    {
+        return $this->postId;
+    }
+
+    public function setPostId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return page
      */
     public function getPage()
     {
@@ -64,7 +80,7 @@ class Bucket
         $this->page = $page;
     }
     /**
-     * @return count $id
+     * @return count
      */
     public function getCount()
     {
@@ -76,19 +92,22 @@ class Bucket
     }
 
     /**
-     * @param Comment $comments
+     * @param Comment $comment
+     * @return bool
      */
-    public function addComments(Comment $comments)
+    public function addComments(Comment $comment) : bool
     {
-        $this->comments[] = $comments;
+        $this->count++;
+        $this->comments[] = $comment;
+        return true;
     }
 
     /**
-     * @param Comment $comments
+     * @param Comment $comment
      */
-    public function removeComments(Comment $comments)
+    public function removeComments(Comment $comment)
     {
-        $this->comments->removeElement($comments);
+        $this->comments->removeElement($comment);
     }
 
     /**

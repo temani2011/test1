@@ -11,6 +11,8 @@ services:
         ports:
             - "80:80"
     php-fpm:
+        #build:
+        #            context: ./docker/php-fpm
         image: test1_php-fpm
         volumes:
             - ./app:/var/www/app
@@ -67,7 +69,7 @@ services:
     mongo-express:
         image: mongo-express
         environment:
-            #ME_CONFIG_MONGODB_ENABLE_ADMIN: "false"
+            ME_CONFIG_MONGODB_ENABLE_ADMIN: "false"
             #ME_CONFIG_MONGODB_AUTH_USERNAME: "$MONGO_INITDB_ROOT_USERNAME"
             #ME_CONFIG_MONGODB_AUTH_PASSWOR: "$MONGO_INITDB_ROOT_PASSWORD"
             #ME_CONFIG_BASICAUTH_USERNAME: "$MONGO_INITDB_ROOT_USERNAME"
