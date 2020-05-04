@@ -6,6 +6,7 @@ import Login from "../views/Login";
 import Posts from "../views/Posts";
 import News from "../views/News";
 import NewsArticle from "../views/NewsArticle";
+import User from "../views/User";
 
 Vue.use(VueRouter);
 
@@ -17,6 +18,7 @@ let router = new VueRouter({
         { path: "/posts", component: Posts, meta: { requiresAuth: true } },
         { path: "/news", component: News },
         { path: "/news/:id", name: 'article', component: NewsArticle, props: true },
+        { path: "/user/:id", name: 'user', component: User, props: true, meta: { requiresAuth: true } },
         { path: "*", redirect: "/home" }
     ],
 });

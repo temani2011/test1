@@ -81,9 +81,8 @@ final class CommentController extends AbstractController
         catch(\Exception $e){
             throw new BadRequestHttpException($e->getMessage());
         }
-        $user = $this->em->getRepository(User::class)->findOneBy(['id' => $comment->getAuthor()]);
-        //$user_json = $this->serializer->serialize($user->getLogin(), JsonEncoder::FORMAT);
-        $comment->setAuthor($user->getLogin());
+//        $user = $this->em->getRepository(User::class)->findOneBy(['id' => $comment->getAuthor()]);
+//        $comment->setAuthor($user->getLogin());
         $data = $this->serializer->serialize($comment, JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
@@ -117,11 +116,10 @@ final class CommentController extends AbstractController
         $users = [];
         foreach ($buckets as $bucket)
             $comments = $bucket->getComments();
-        foreach ($comments as $comment){
-            $user = $this->em->getRepository(User::class)->findOneBy(['id' => $comment->getAuthor()]);
-            //$user_json = $this->serializer->serialize($user->getLogin(), JsonEncoder::FORMAT);
-            $comment->setAuthor($user->getLogin());
-        }
+//        foreach ($comments as $comment){
+//            $user = $this->em->getRepository(User::class)->findOneBy(['id' => $comment->getAuthor()]);
+//            $comment->setAuthor($user->getLogin());
+//        }
         $data = $this->serializer->serialize($comments, JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }

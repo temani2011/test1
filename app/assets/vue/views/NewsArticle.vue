@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="NewsArticleIsLoading && CommentsIsLoading" class="row col">
+        <div v-if="NewsArticleIsLoading" class="row col">
             <p>Loading...</p>
         </div>
 
@@ -40,7 +40,7 @@
                     <!-- Category -->
                     <router-link class="text-dark mr-2" :to="'#'"><i class="fas fa-globe-europe pr-1"></i> Общие </router-link>
                     <!-- Author -->
-                    <router-link class="text-dark" :to="'#'"> <u> {{ author }} </u> </router-link>
+                    <router-link class="text-dark" :to="'../user/' + this.author"> <u> {{ authorLogin }} </u> </router-link>
                     <!-- Date -->
                     <div class="d-inline float-right text-muted"><i class="far fa-clock pr-1"></i> {{ created }} </div>
                 </div>
@@ -81,15 +81,18 @@
                 </div>
             </div>
 
-            <!-- Card Error -->
-            <div v-if="CommentsHasError" class="row col">
-                <error-message :error="CommentsGetError" />
-            </div>
-
-            <div v-if="!isHidden" v-for="item in getComments" class="card mb-3half shadow-light">
-                <div :key="item.id" class="row col">
-                    <span>{{ item.author }}</span>
-                    <span>{{ item.text }}</span>
+            <div v-if="!isHidden">
+                <div v-if="CommentsIsLoading" class="row col">
+                    <p>Loading...</p>
+                </div>
+                <div v-else-if="CommentsHasError" class="row col">
+                    <error-message :error="CommentsGetError" />
+                </div>
+                <div v-else v-for="item in this.comments" class="card mb-3half shadow-light">
+                    <div :key="item.id" class="row col">
+                        <router-link class="text-dark" :to="'../user/' + item.author"> {{ item.authorLogin }}  </router-link>
+                        <span v-html="item.text"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,6 +119,7 @@
                 text: "",
                 created: "",
                 author: "",
+                authorLogin: "",
                 commentText: "",
                 comments: []
             }
@@ -129,13 +133,9 @@
                     this.title = responce.title;
                     this.text = responce.text;
                     this.created = responce.created;
-                    this.author = responce.user.login;
-                }).then(request => this.$store.dispatch("comment/getAllComments", this.$route.params.id))
-                    .then(response => this.comments = response);
-                    // .then(request => {
-                    //     this.comments.forEach(comment => this.$store.dispatch("user/getUser", this.comment.id)
-                    //         .then(response => comment.author = response.login;));
-                    // }););
+                    this.author = responce.user.id;
+                    this.authorLogin = responce.user.login;
+                });
             if(this.$route.params.msg === 'edit') this.state = 'edit';
         },
         computed: {
@@ -184,6 +184,12 @@
             },
             show(event){
                 event.preventDefault();
+            if(this.comments.length == 0) this.$store.dispatch("comment/getAllComments", this.$route.params.id)
+                .then(response => this.comments = response)
+                  .then(request => {
+                     this.comments.forEach(comment => this.$store.dispatch("user/getUserById", comment.author)
+                         .then(response => comment.authorLogin = response.login))
+                  });
                 this.isHidden = !this.isHidden;
             },
             async editNews(event){

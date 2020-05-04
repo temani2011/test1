@@ -6,7 +6,7 @@
         <div v-else>
             <div v-if="canCreatePost">
                 <div class="card mb-3half shadow-light">
-                    <router-link v-if="canCreatePost" :to="{ name: 'article', params: { id: 'new', msg:'new'} }" type="button d-block">
+                    <router-link :to="{ name: 'article', params: { id: 'new', msg:'new'} }" type="button d-block">
                                  Create New
                     </router-link>
                 </div>
@@ -30,7 +30,7 @@
                     <!-- Category -->
                     <router-link class="text-dark mr-2" :to="'#'"><i class="fas fa-globe-europe pr-1"></i> Общие </router-link>
                     <!-- Author -->
-                    <router-link class="text-dark" :to="'#'"> <u> {{ item.user.login }} </u> </router-link>
+                    <router-link class="text-dark" :to="'user/'+ item.user.id"> <u> {{ item.user.login }} </u> </router-link>
                     <!-- Date -->
                     <div class="d-inline float-right text-muted"><i class="far fa-clock pr-1"></i> {{ item.created }} </div>
                 </div>

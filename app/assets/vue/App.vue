@@ -20,9 +20,9 @@
                     <li class="nav-item dropdown" v-if="isAuthenticated">
                         <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-4" data-toggle="dropdown"
                            aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-user"></i> Profile </a>
+                            <i class="fas fa-user"></i> {{ UserName }} </a>
                         <div class="dropdown-menu dropdown-menu-right dropdown-info pb-0" aria-labelledby="navbarDropdownMenuLink-4">
-                            <a class="dropdown-item" href="#">My account</a>
+                            <router-link class="dropdown-item" :to="'user/'+ UserId"> My profile </router-link>
                             <a class="dropdown-item" href="#" @click="logout()">Log out</a>
                         </div>
                     </li>
@@ -108,6 +108,7 @@
         name: "App",
         data: function () {
             return {
+                UserId: "",
                 UserName: "",
                 activeClass: "active"
             };
@@ -131,6 +132,10 @@
         created() {
             let isAuthenticated = JSON.parse(this.$parent.$el.attributes["data-is-authenticated"].value),
                 user = JSON.parse(this.$parent.$el.attributes["data-user"].value);
+            if(user) {
+                this.UserName = user.login;
+                this.UserId = user.id;
+            }
             let payload = { isAuthenticated: isAuthenticated, user: user };
             this.$store.dispatch("security/onRefresh", payload);
             axios.interceptors.response.use(undefined, err => {
