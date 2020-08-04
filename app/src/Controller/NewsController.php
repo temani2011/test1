@@ -120,6 +120,8 @@ final class NewsController extends AbstractController
         $data = json_decode($request->getContent(), true);
         array_key_exists('title',$data) ? $title = $data['title'] : $title = "";
         array_key_exists('text',$data) ? $text = $data['text'] : $text = "";
+        array_key_exists('coverText',$data) ? $coverText = $data['coverText'] : $coverText = "";
+        array_key_exists('coverImage',$data) ? $coverImage = $data['coverImage'] : $coverImage = "";
         if (!Uuid::isValid($id)) {
             throw new \InvalidArgumentException(sprintf('%s is not a valid Uuid.', $id));
         }
@@ -128,7 +130,9 @@ final class NewsController extends AbstractController
             throw new BadRequestHttpException('No product found for id '.$id);
         }
         $news->setTitle($title)
-            ->setText($text);
+            ->setText($text)
+            ->setCoverText($coverText)
+            ->setCoverImage($coverImage);
         $errors = $this->validator->validate($news);
         if(count($errors) > 0) {
             throw new BadRequestHttpException((string) $errors);

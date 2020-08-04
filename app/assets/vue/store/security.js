@@ -31,12 +31,13 @@ export default {
         },
         hasRole(state) {
             return role => {
-                if(state.user == null) return false;
+                if(state.user == null) return false; //??
                 return state.user.roles[0].indexOf(role) !== -1;
             }
         },
         getUserData(state){
-            return state.user;
+            if(state.user == null) return false; //??
+            else return state.user;
         }
     },
     mutations: {
