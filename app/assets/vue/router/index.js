@@ -5,7 +5,9 @@ import Home from "../views/Home";
 import Login from "../views/Login";
 import Posts from "../views/Posts";
 import News from "../views/News";
-import NewsArticle from "../views/NewsArticle";
+import ArticleCreate from "../components/News/ArticleCreate";
+import ArticleEdit from "../components/News/ArticleEdit";
+import ArticleSelect from "../components/News/ArticleSelect";
 import User from "../views/User";
 
 Vue.use(VueRouter);
@@ -16,8 +18,10 @@ let router = new VueRouter({
         { path: "/home", component: Home, meta: { requiresAuth: true } },
         { path: "/login", component: Login },
         { path: "/posts", component: Posts, meta: { requiresAuth: true } },
-        { path: "/news", component: News },
-        { path: "/news/:id", name: 'article', component: NewsArticle, props: true },
+        { path: "/news/", component: News },
+        { path: '/news/new', component: ArticleCreate, meta: { requiresAuth: true } },
+        { path: "/news/:id", component: ArticleSelect },
+        { path: '/news/:id/edit', component: ArticleEdit, meta: { requiresAuth: true }  },
         { path: "/user/:id", name: 'user', component: User, props: true, meta: { requiresAuth: true } },
         { path: "*", redirect: "/home" }
     ],

@@ -6,7 +6,7 @@
         <div v-else>
             <div v-if="canCreatePost" class="row">
                 <div class="col" style="padding-bottom:15px">
-                <router-link :to="{ name: 'article', params: { id: 'new', msg:'new'} }" tag="button"
+                <router-link :to="'/news/new'" tag="button"
                              class="btn btn-primary btn-block">
                     Создать новость
                 </router-link>
@@ -30,7 +30,7 @@
                                             <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
                                         </div>
                                         <div class="dropdown-menu" aria-labelledby="btnGroupDropEdit">
-                                            <router-link class="dropdown-item" :id="item.id" :to="{ name: 'article', params: { id: item.id, msg:'edit'} }">
+                                            <router-link class="dropdown-item" :id="item.id" :to="'news/'+ item.id +'/edit'">
                                                 Редактировать
                                             </router-link>
                                             <a class="dropdown-item" :id="item.id" @click="DeleteNews($event)">Удалить</a>
@@ -74,7 +74,6 @@
     </div>
 </template>
 <script>
-    //import Article from "../views/NewsArticle";
     import ErrorMessage from "../components/ErrorMessage";
     export default {
         name: "News",

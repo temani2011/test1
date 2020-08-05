@@ -4,7 +4,7 @@
             <p>Loading...</p>
         </div>
 
-        <div v-else-if="state=='select'">
+        <div v-else>
             <div class="row">
                 <div class="col mb-3half">
                     <!-- Card Light -->
@@ -13,19 +13,19 @@
                             <!-- Category -->
                             <router-link class="text-dark mr-2" :to="'#'"><i class="fas fa-globe-europe pr-1"></i> Общие </router-link>
                             <!-- Author -->
-                            <router-link class="text-dark" :to="{ name: 'user', params: { id: article.user.id } }"> <u> {{ article.user.login }} </u> </router-link>
+                            <router-link class="text-dark" :to="{ name: 'user', params: { id: user.id } }"> <u> {{ user.login }} </u> </router-link>
                             <!-- Date -->
                             <div class="d-inline float-right text-muted">
-                                <i class="far fa-clock pr-1"></i> {{ article.created }}
+                                <i class="far fa-clock pr-1"></i> {{ created }}
                                 <div class="btn-group" role="group" v-if="canEditPost">
                                     <div id="btnGroupDropEdit" type="button" class="close pl-2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
                                     </div>
                                     <div class="dropdown-menu" aria-labelledby="btnGroupDropEdit">
-                                        <router-link class="dropdown-item" :id="article.id" :to="{ params: { id: article.id + '/edit', msg:'edit'} }">
+                                        <router-link class="dropdown-item" :id="id" :to="id + '/edit'">
                                             Редактировать
                                         </router-link>
-                                        <a class="dropdown-item" :id="article.id" @click="DeleteNews($event)">Удалить</a>
+                                        <a class="dropdown-item" :id="id" @click="DeleteNews($event)">Удалить</a>
                                     </div>
                                 </div>
                             </div>
@@ -35,22 +35,22 @@
                         <!-- Card content -->
                         <div class="card-body pt-0 pb-3">
                             <!-- Title -->
-                            <h4 class="card-title mb-0" style="font-weight: 500"> {{ article.title }} </h4>
+                            <h4 class="card-title mb-0" style="font-weight: 500"> {{ title }} </h4>
                             <!-- Text -->
-                            <p class="card-text mb-0"> {{ article.coverText }} </p>
+                            <p class="card-text mb-0"> {{ coverText }} </p>
                         </div>
 
                         <!-- Card image -->
                         <div class="view overlay">
                             <img class="card-img-top rounded-0 shadow-light"
-                                 :src="article.coverImage ? article.coverImage : ''" alt="Card image cap">
+                                 :src="coverImage ? coverImage : ''" alt="Card image cap">
                             <a>
                                 <div class="mask rgba-white-slight"></div>
                             </a>
                         </div>
 
                         <!-- Main text -->
-                        <div class="card-body pt-3 pb-0" v-html="article.text">
+                        <div class="card-body pt-3 pb-0" v-html="text">
                         </div>
                         <hr class="my-0" style="border-top-width: 2px"/>
 
@@ -91,87 +91,42 @@
             </div>
         </div>
 
-        <div v-else>
-            <div class="card shadow-light">
-                <div class="card-header white mb-1 pt-3half pb-0 border-0 text-dark">
-                    <h4 class="card-title mb-0" style="font-weight: 500">
-                        <span v-if="state === 'new'"> Создание новости </span>
-                        <span v-else> Редактирование новости </span>
-                    </h4>
-                </div>
-                <hr style="border-top-width: 2px"/>
-                <div class="card-body pt-0 pb-3">
-                    <label>Название</label>
-                    <div class="form-group">
-                        <input type="text" v-model="article.title" class="form-control rounded-0">
-                    </div>
-
-                    <label>Описание</label>
-                    <div class="form-group">
-                        <textarea v-model="article.coverText" class="form-control rounded-0" length="120" rows="2"></textarea>
-                    </div>
-
-                    <label>Тело новости</label>
-                    <tinymce id="editor" :toolbar1="toolbar1" v-model="article.text" ref="tm" @editorInit="editorInit" class="mb-3"></tinymce>
-
-                    <label style="line-height: 14pt">
-                        Загрузите изображение для превью новости
-                        <br>
-                        <em style="font-size:12px">(В случае отутсвия загруженного изображения будет использовано стандартное)</em>
-                    </label>
-
-                    <form class="input-group mb-3" id="file-form">
-                        <div class="input-group-prepend">
-                            <label id="file-input-btn" class="btn btn-md btn-outline-primary m-0 px-3 py-2 z-depth-0 waves-effect">
-                                Обзор <input @change="fileChange($event)" id="file-input" type="file" hidden>
-                            </label>
-                        </div>
-                        <input v-model="article.coverImage" type="text" value="Choose file..." class="form-control text-file-input" placeholder="" aria-label="" aria-describedby="basic-addon1">
-                    </form>
-
-                    <button form="file-form" @click="state === 'new' ? createNews() : editNews()" class="btn btn-md m-0 btn-primary">Сохранить</button>
-                </div>
-            </div>
-        </div>
-
     </div>
 </template>
 <script>
     import tinymce from 'vue-tinymce-editor';
-    import ErrorMessage from "../components/ErrorMessage";
+    import ErrorMessage from "../ErrorMessage";
     export default {
         components:{
             tinymce,
             ErrorMessage
         },
-        name: "Article",
-        props: ['msg'],
+        name: "ArticleSelect",
         data() {
             return {
                 isHidden: true,
-                state: 'select',
                 toolbar1: '',
                 commentText: "",
-                article: {
-                    coverText: '',
-                    coverImage: '',
-                    text: '',
-                    title: '',
-                    user: { id: '', login: ''}
-                },
+                created: '',
+                coverText: '',
+                coverImage: '',
+                text: '',
+                title: '',
+                user: { id: '', login: ''},
                 comments: []
             }
         },
         created() {
-            console.log(this.$route.params.msg);
-            console.log(this.$route.params.id);
-            if(this.$route.params.msg === 'new') { this.state = 'new'; return; }
-            else {
-                this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
-                    this.article = responce;
-                });
-                if(this.$route.params.msg === 'edit') this.state = 'edit';
-            }
+            this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
+                this.id = responce.id;
+                this.title = responce.title;
+                this.text = responce.text;
+                this.created = responce.created;
+                this.coverText = responce.coverText;
+                this.coverImage = responce.coverImage;
+                this.user.id = responce.user.id;
+                this.user.login = responce.user.login;
+            });
         },
         computed: {
             NewsArticleIsLoading() {
@@ -212,51 +167,23 @@
             canEditPost(){
                 var curuser = this.$store.getters["security/getUserData"];
                 console.log(this.id);
-                if(this.article.user.id === curuser.id) return true;
+                if(this.user.id === curuser.id) return true;
                 else return false;
             }
         },
         methods: {
-            fileChange(event){
-                var fileName = event.target.files[0].name;
-                document.querySelector('.text-file-input').value = fileName;
-            },
             editorInit() {
-                this.$refs.tm.editor.setContent(this.article.text);
+                this.$refs.tm.editor.setContent(this.text);
             },
             show(event){
                 event.preventDefault();
-            if(this.comments.length == 0) this.$store.dispatch("comment/getAllComments", this.$route.params.id)
-                .then(response => this.comments = response)
-                  .then(request => {
-                     this.comments.forEach(comment => this.$store.dispatch("user/getUserById", comment.author)
-                         .then(response => comment.authorLogin = response.login))
-                  });
+                if(this.comments.length == 0) this.$store.dispatch("comment/getAllComments", this.$route.params.id)
+                    .then(response => this.comments = response)
+                    .then(request => {
+                        this.comments.forEach(comment => this.$store.dispatch("user/getUserById", comment.author)
+                            .then(response => comment.authorLogin = response.login))
+                    });
                 this.isHidden = !this.isHidden;
-            },
-            async editNews(event){
-                console.log(this.id,
-                    this.article.coverText,
-                    this.article.coverImage,
-                    this.article.title,
-                    this.article.text);
-                let p = [this.article.id,
-                    this.article.coverText,
-                    this.article.coverImage,
-                    this.article.title,
-                    this.article.text];
-                const result = await this.$store.dispatch("news/putNews", p);
-            },
-            async createNews(event){
-                console.log(this.article.coverText,
-                    this.article.coverImage,
-                    this.article.title,
-                    this.article.text);
-                let p = [this.article.coverText,
-                    this.article.coverImage,
-                    this.article.title,
-                    this.article.text];
-                const result = await this.$store.dispatch("news/postNews", p);
             },
             async createComment(event){
                 console.log(this.article.id, this.commentText, this.$store.getters['security/getUserData'].id);
@@ -265,11 +192,5 @@
             }
         }
     };
-
-    /* show file value after file select */
-    $('#file-input').on('change',function(){
-        var fileName = document.getElementById("file-input").files[0].name;
-        $('.text-file-input').val(fileName);
-    })
 
 </script>
