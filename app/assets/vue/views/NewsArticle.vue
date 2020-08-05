@@ -4,63 +4,7 @@
             <p>Loading...</p>
         </div>
 
-        <div v-else-if="state == 'new' || state=='edit'">
-            <div class="card shadow-light">
-                <div class="card-header white mb-1 pt-3half pb-0 border-0 text-dark">
-                    <h4 class="card-title mb-0" style="font-weight: 500">
-                        <span v-if="state === 'new'"> Создание новости </span>
-                        <span v-else> Редактирование новости </span>
-                    </h4>
-                </div>
-                <hr style="border-top-width: 2px"/>
-                <div class="card-body pt-0 pb-3">
-                    <label>Название</label>
-                    <div class="form-group">
-                        <input type="text" v-model="title" class="form-control rounded-0">
-                    </div>
-
-                    <label>Описание</label>
-                    <div class="form-group">
-                        <textarea v-model="coverText" class="form-control rounded-0" length="120" rows="2"></textarea>
-                    </div>
-
-                    <label>Тело новости</label>
-                    <tinymce id="editor" v-model="text" ref="tm" @editorInit="editorInit" class="mb-3"></tinymce>
-
-                    <label style="line-height: 14pt">
-                        Загрузите изображение для превью новости
-                        <br>
-                        <em style="font-size:12px">(В случае отутсвия загруженного изображения будет использовано стандартное)</em>
-                    </label>
-                    <form class="input-group mb-3" id="file-form">
-                        <div class="input-group-prepend">
-                            <label class="btn btn-md btn-outline-primary m-0 px-3 py-2 z-depth-0 waves-effect">
-                                Обзор <input id="file-input" type="file" hidden>
-                            </label>
-                        </div>
-                        <input type="text" value="Choose file..." class="form-control text-file-input" placeholder="" aria-label="" aria-describedby="basic-addon1">
-                    </form>
-
-                    <button form="file-form" @click="state === 'new' ? createNews() : editNews()" class="btn btn-md m-0 btn-primary">Сохранить</button>
-
-                    <!--
-                    <form class="input-group" id="file-form">
-                        <div class="file-field">
-                            <div class="btn btn-primary btn-sm float-left">
-                                <input type="file" @change="fileListener">
-                            </div>
-                            <div class="file-path-wrapper">
-                                <input v-model="coverImage" class="file-path validate">
-                            </div>
-                        </div>
-                        <button form="file-form" @click="state === 'new' ? createNews() : editNews()" class="btn btn-sm btn-primary">Send</button>
-                    </form>
-                    -->
-                </div>
-            </div>
-        </div>
-
-        <div v-else>
+        <div v-else-if="state=='select'">
             <div class="row">
                 <div class="col mb-3half">
                     <!-- Card Light -->
@@ -105,6 +49,11 @@
                             </a>
                         </div>
 
+                        <!-- Main text -->
+                        <div class="card-body pt-3 pb-0" v-html="article.text">
+                        </div>
+                        <hr class="my-0" style="border-top-width: 2px"/>
+
                         <!-- Card footer -->
                         <div class="card-footer pb-3half border-0 pt-3 white">
                             <ul class="list-unstyled list-inline m-0">
@@ -118,10 +67,8 @@
                         <!-- Card comment input -->
                         <div v-if="canCreatePost && !isHidden" class="card-body pt-0 pb-3">
                             <!-- Text input -->
-                            <tinymce id="editor1" v-model="commentText" ref="tm1"></tinymce>
-                            <form class="md-form">
-                                <button @click="createComment()" type="button" class="btn btn-primary">Send</button>
-                            </form>
+                            <tinymce id="editor1" :toolbar1="toolbar1" v-model="commentText" ref="tm1" class="mb-3half"></tinymce>
+                            <button @click="createComment()" type="button" class="btn btn-md m-0 btn-primary">Отправить</button>
                         </div>
 
                     </div>
@@ -144,6 +91,49 @@
             </div>
         </div>
 
+        <div v-else>
+            <div class="card shadow-light">
+                <div class="card-header white mb-1 pt-3half pb-0 border-0 text-dark">
+                    <h4 class="card-title mb-0" style="font-weight: 500">
+                        <span v-if="state === 'new'"> Создание новости </span>
+                        <span v-else> Редактирование новости </span>
+                    </h4>
+                </div>
+                <hr style="border-top-width: 2px"/>
+                <div class="card-body pt-0 pb-3">
+                    <label>Название</label>
+                    <div class="form-group">
+                        <input type="text" v-model="article.title" class="form-control rounded-0">
+                    </div>
+
+                    <label>Описание</label>
+                    <div class="form-group">
+                        <textarea v-model="article.coverText" class="form-control rounded-0" length="120" rows="2"></textarea>
+                    </div>
+
+                    <label>Тело новости</label>
+                    <tinymce id="editor" :toolbar1="toolbar1" v-model="article.text" ref="tm" @editorInit="editorInit" class="mb-3"></tinymce>
+
+                    <label style="line-height: 14pt">
+                        Загрузите изображение для превью новости
+                        <br>
+                        <em style="font-size:12px">(В случае отутсвия загруженного изображения будет использовано стандартное)</em>
+                    </label>
+
+                    <form class="input-group mb-3" id="file-form">
+                        <div class="input-group-prepend">
+                            <label id="file-input-btn" class="btn btn-md btn-outline-primary m-0 px-3 py-2 z-depth-0 waves-effect">
+                                Обзор <input @change="fileChange($event)" id="file-input" type="file" hidden>
+                            </label>
+                        </div>
+                        <input v-model="article.coverImage" type="text" value="Choose file..." class="form-control text-file-input" placeholder="" aria-label="" aria-describedby="basic-addon1">
+                    </form>
+
+                    <button form="file-form" @click="state === 'new' ? createNews() : editNews()" class="btn btn-md m-0 btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
 <script>
@@ -159,25 +149,29 @@
         data() {
             return {
                 isHidden: true,
-                id: "",
-                article: { user: { id: '', login: ''} },
                 state: 'select',
+                toolbar1: '',
                 commentText: "",
+                article: {
+                    coverText: '',
+                    coverImage: '',
+                    text: '',
+                    title: '',
+                    user: { id: '', login: ''}
+                },
                 comments: []
             }
         },
         created() {
-            console.log('я гей');
             console.log(this.$route.params.msg);
             console.log(this.$route.params.id);
             if(this.$route.params.msg === 'new') { this.state = 'new'; return; }
-            else this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
+            else {
+                this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
                     this.article = responce;
-                    console.log('я гей2');
-                    console.log(this.article);
-                    this.id = responce.user.id;
                 });
-            if(this.$route.params.msg === 'edit') this.state = 'edit';
+                if(this.$route.params.msg === 'edit') this.state = 'edit';
+            }
         },
         computed: {
             NewsArticleIsLoading() {
@@ -223,11 +217,12 @@
             }
         },
         methods: {
+            fileChange(event){
+                var fileName = event.target.files[0].name;
+                document.querySelector('.text-file-input').value = fileName;
+            },
             editorInit() {
                 this.$refs.tm.editor.setContent(this.article.text);
-            },
-            fileListener(event){
-                console.log(event.target.files);
             },
             show(event){
                 event.preventDefault();
@@ -270,4 +265,11 @@
             }
         }
     };
+
+    /* show file value after file select */
+    $('#file-input').on('change',function(){
+        var fileName = document.getElementById("file-input").files[0].name;
+        $('.text-file-input').val(fileName);
+    })
+
 </script>
