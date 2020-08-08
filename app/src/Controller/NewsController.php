@@ -59,9 +59,13 @@ final class NewsController extends AbstractController
     {
         $title = $request->request->get("title");
         $text = $request->request->get('text');
+        $coverText = $request->request->get('$coverText');
+        $coverImage = $request->request->get('$coverImage');
         $news = new News();
         $news->setTitle($title)
             ->setText($text)
+            ->setCoverImage($coverImage)
+            ->setCoverText($coverText)
             ->setUser($this->getUser());
         $errors = $this->validator->validate($news);
         if(count($errors) > 0) {

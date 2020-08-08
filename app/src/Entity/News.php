@@ -28,13 +28,13 @@ class News
 
     /**
      * @Groups({"News_default"})
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $coverText;
 
     /**
      * @Groups({"News_default"})
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $coverImage;
 
@@ -100,7 +100,7 @@ class News
         return $this->coverText;
     }
 
-    public function setCoverText(string $coverText): self
+    public function setCoverText(string $coverText = null): self
     {
         $this->coverText = $coverText;
 
@@ -112,7 +112,7 @@ class News
         return $this->coverImage;
     }
 
-    public function setCoverImage(string $coverImage): self
+    public function setCoverImage(string $coverImage = null): self
     {
         $this->coverImage = $coverImage;
 

@@ -9,6 +9,10 @@ import ArticleCreate from "../components/News/ArticleCreate";
 import ArticleEdit from "../components/News/ArticleEdit";
 import ArticleSelect from "../components/News/ArticleSelect";
 import User from "../views/User";
+import UserSelect from "../components/User/UserSelect";
+import UserCreate from "../components/User/UserCreate";
+import UserEdit from "../components/User/UserEdit";
+import UserDelete from "../components/User/UserDelete";
 
 Vue.use(VueRouter);
 
@@ -22,7 +26,9 @@ let router = new VueRouter({
         { path: '/news/new', component: ArticleCreate, meta: { requiresAuth: true } },
         { path: "/news/:id", component: ArticleSelect },
         { path: '/news/:id/edit', component: ArticleEdit, meta: { requiresAuth: true }  },
-        { path: "/user/:id", name: 'user', component: User, props: true, meta: { requiresAuth: true } },
+        { path: "/user/new", component: UserCreate },
+        { path: "/user/:id", component: User, meta: { requiresAuth: true } },
+        { path: "/user/:id/edit", component: UserEdit, meta: { requiresAuth: true } },
         { path: "*", redirect: "/home" }
     ],
 });

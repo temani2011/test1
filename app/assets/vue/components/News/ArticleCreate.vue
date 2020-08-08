@@ -96,15 +96,10 @@
                 this.$refs.tm.editor.setContent(this.text);
             },
             async createNews(event){
-                console.log(this.coverText,
-                    this.coverImage,
-                    this.title,
-                    this.text);
-                let p = [this.coverText,
-                    this.coverImage,
-                    this.title,
-                    this.text];
+                console.log(this.coverText, this.coverImage, this.title, this.text);
+                let p = [this.coverText, this.coverImage, this.title, this.text];
                 const result = await this.$store.dispatch("news/postNews", p);
+                this.$router.push({path:'/news/' + result.id });
             },
         }
     };

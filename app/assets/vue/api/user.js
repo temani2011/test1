@@ -19,8 +19,9 @@ export default {
         console.log(data[0], data[1], data[2], data[3]);
         return axios.put("/api/user/" + data[0], {
             login: data[1],
-            password: data[2],
-            roles: data[3],
+            current_password: data[2],
+            new_password: data[3],
+            roles: data[4],
         });
     },
     deleteUser(id){

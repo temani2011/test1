@@ -43,7 +43,7 @@
                         <!-- Card image -->
                         <div class="view overlay">
                             <img class="card-img-top rounded-0 shadow-light"
-                                 :src="coverImage ? coverImage : ''" alt="Card image cap">
+                                 :src="coverImage ? coverImage : defaultImage" alt="Card image cap">
                             <a>
                                 <div class="mask rgba-white-slight"></div>
                             </a>
@@ -104,6 +104,7 @@
         name: "ArticleSelect",
         data() {
             return {
+                defaultImage: "https://mdbootstrap.com/img/Photos/Horizontal/Nature/4-col/img%20%28131%29.jpg",
                 isHidden: true,
                 toolbar1: '',
                 commentText: "",
@@ -189,7 +190,15 @@
                 console.log(this.article.id, this.commentText, this.$store.getters['security/getUserData'].id);
                 let p = [this.article.id, this.commentText, this.$store.getters['security/getUserData'].id];
                 const result = await this.$store.dispatch("comment/postComment", p);
-            }
+            },
+            async DeleteNews(event){
+                console.log(event.currentTarget.id);
+                event.preventDefault();
+                if (confirm('Are you sure you want to delete this news?')){
+                    await this.$store.dispatch("news/deleteNews", event.currentTarget.id);
+                    this.$router.push({path:'/news'});
+                }
+            },
         }
     };
 

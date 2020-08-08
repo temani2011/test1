@@ -22,7 +22,7 @@
                            aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-user"></i> {{ UserName }} </a>
                         <div class="dropdown-menu dropdown-menu-right dropdown-info pb-0" aria-labelledby="navbarDropdownMenuLink-4">
-                            <router-link class="dropdown-item" :to="'user/'+ UserId"> My profile </router-link>
+                            <router-link class="dropdown-item" :to="'/user/'+ UserId"> My profile </router-link>
                             <a class="dropdown-item" href="#" @click="logout()">Log out</a>
                         </div>
                     </li>

@@ -106,17 +106,10 @@
                 this.$refs.tm.editor.setContent(this.text);
             },
             async editNews(event){
-                console.log(this.id,
-                    this.coverText,
-                    this.coverImage,
-                    this.title,
-                    this.text);
-                let p = [this.id,
-                    this.coverText,
-                    this.coverImage,
-                    this.title,
-                    this.text];
+                console.log(this.id, this.coverText, this.coverImage, this.title, this.text);
+                let p = [this.id, this.coverText, this.coverImage, this.title, this.text];
                 const result = await this.$store.dispatch("news/putNews", p);
+                this.$router.push({path:'/news/' + result.id});
             },
         }
     };

@@ -48,7 +48,6 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(name="password", type="string")
-     * @Groups({"User_default"})
      * @var string|null
      */
     private $password;
@@ -105,7 +104,6 @@ class User implements UserInterface
     }
 
     /**
-     * @Groups({"User_default"})
      * @return UuidInterface
      */
     public function getId(): UuidInterface
@@ -114,7 +112,6 @@ class User implements UserInterface
     }
 
     /**
-     * @Groups({"User_default"})
      * @return string
      */
     public function getLogin(): string
@@ -131,7 +128,6 @@ class User implements UserInterface
     }
 
     /**
-     * @Groups({"User_default"})
      * @return string
      */
     public function getUsername(): string
@@ -140,7 +136,6 @@ class User implements UserInterface
     }
 
     /**
-     * @Groups({"User_default"})
      * @return string|null
      */
     public function getPlainPassword(): ?string
@@ -161,7 +156,6 @@ class User implements UserInterface
     }
 
     /**
-     * @Groups({"User_default"})
      * @return string|null
      */
     public function getPassword(): ?string
@@ -178,7 +172,6 @@ class User implements UserInterface
     }
 
     /**
-     * @Groups({"User_default"})
      * @return null
      */
     public function getSalt()
@@ -188,7 +181,6 @@ class User implements UserInterface
     }
 
     /**
-     * @Groups({"User_default"})
      * @return string[]
      */
     public function getRoles(): array

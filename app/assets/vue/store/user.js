@@ -106,7 +106,7 @@ export default {
         },
         async editUser({commit}, payload){
             commit(LOADING_USER);
-            console.log('put, user:' + payload);
+            console.log('edit, user:' + payload);
             try {
                 let response = await UserAPI.editUser(payload);
                 console.log(response);

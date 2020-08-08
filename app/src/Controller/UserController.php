@@ -121,8 +121,11 @@ final class UserController extends AbstractController
     {
         $user = $this->em->getRepository(User::class)->findOneBy(['id' => $id ]);
         if(!$user) throw new BadRequestHttpException("user doesn't exist");
-        $user->setPassword($request->request->get('password'));
-        $user->setPlainPassword($request->request->get('password'));
+        $curpass = $request->request->get('current_password');
+        if(isset($curpass) && $curpass !== "")
+            if($curpass === $user->getPassword())
+                $user->setPassword($request->request->get('new_password'));
+            else throw new BadRequestHttpException("current password not match");
         $user->setRoles($request->request->get('roles'));
         try {
             $this->em->persist($user);
