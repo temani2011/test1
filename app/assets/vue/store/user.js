@@ -43,7 +43,9 @@ export default {
         [FETCHING_USERS_SUCCESS](state, users) {
             state.isLoading = false;
             state.error = null;
-            state.users = users;
+            if(Array.isArray(users))
+                state.users = users;
+            else state.users.unshift(users);
         },
         [CREATING_USER_SUCCESS](state, user) {
             state.isLoading = false;

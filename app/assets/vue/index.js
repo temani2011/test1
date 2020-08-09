@@ -2,7 +2,7 @@ import Vue from "vue";
 import App from "./App";
 import router from "./router";
 import store from "./store";
-
+window.Vue = Vue;
 /*
 // Offline
 import 'bootstrap/dist/css/bootstrap.min.css';

@@ -10,37 +10,31 @@
                         Создать нового пользователя
                     </router-link>
                 </div>
-                <div class="col">
-                    <router-link :to="'/user/' + id + '/edit'" tag="button" class="btn btn-md btn-primary btn-block m-0">
-                        Редактировать текущего пользователя
-                    </router-link>
-                </div>
             </div>
-            <div class="row mb-3">
-                <div class="col">
-                    <div class="card shadow-light">
-                        <div class="card-header white mb-1 pt-3half pb-0 border-0 text-dark">
-                            <h4 class="card-title mb-0" style="font-weight: 500">
-                                <span> Данные пользователя {{ login }} </span>
-                            </h4>
-                        </div>
-                        <hr style="border-top-width: 2px"/>
+            <div v-for="item in users">
+                <router-link :to="'/user/' + item.id">
+                    <div class="card shadow-light mb-3">
                         <div class="card-body">
                             <div class="row">
-                                <div class="col"> id </div>
-                                <div class="col mr-auto"> {{ id }} </div>
-                            </div>
-                            <div class="row">
-                                <div class="col"> login </div>
-                                <div class="col mr-auto"> {{ login }} </div>
-                            </div>
-                            <div class="row">
-                                <div class="col"> roles </div>
-                                <div class="col mr-auto"> {{ roles[0] }} </div>
+                                <div class="col-auto"> {{ item.id }} </div>
+                                <div class="col mr-auto"> {{ item.login }} </div>
+                                <div class="col-auto">
+                                    <div class="btn-group" role="group" v-if="canCreatePost">
+                                        <div id="btnGroupDropEdit" type="button" class="close pl-2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
+                                        </div>
+                                        <div class="dropdown-menu" aria-labelledby="btnGroupDropEdit">
+                                            <router-link class="dropdown-item" :id="item.id" :to="'user/'+ item.id +'/edit'">
+                                                Редактировать
+                                            </router-link>
+                                            <a class="dropdown-item" :id="item.id" @click="DeleteUser($event)">Удалить</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </router-link>
             </div>
         </div>
     </div>
@@ -54,17 +48,12 @@
         },
         data() {
             return {
-                id: "",
-                password: "",
-                login: "",
-                roles: []
+                users: []
             }
         },
         created() {
-            this.$store.dispatch("user/getUserById", this.$route.params.id).then(response => {
-                this.id = response.id;
-                this.login = response.login;
-                this.roles = response.roles;
+            this.$store.dispatch("user/getAllUsers").then(response => {
+                this.users = response;
             });
         },
         computed: {
@@ -88,20 +77,14 @@
             }
         },
         methods: {
-            /*
-            async DeleteNews(event){
+            async DeleteUser(event){
                 console.log(event.currentTarget.id);
+                event.preventDefault();
                 if (confirm('Are you sure you want to delete this news?')){
-                    await this.$store.dispatch("news/deleteNews", event.currentTarget.id);
+                    await this.$store.dispatch("user/deleteUser", event.currentTarget.id);
+                    console.log('suc');
                 }
             },
-            async createPost() {
-                const result = await this.$store.dispatch("post/create", this.$data.message);
-                if (result !== null) {
-                    this.$data.message = "";
-                }
-            }
-                    */
         }
     }
 </script>

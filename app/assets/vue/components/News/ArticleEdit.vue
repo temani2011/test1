@@ -68,12 +68,29 @@
             }
         },
         created() {
-            this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
+            if(this.$store.getters["news/hasNews"]) {
+                let news = this.$store.getters["news/getNews"];
+                news = news.find(x => x.id == this.$route.params.id);
+                if(typeof news !== 'undefined') {
+                    this.id = news.id;
+                    this.title = news.title;
+                    this.text = news.text;
+                    this.created = news.created;
+                    this.coverText = news.coverText;
+                    this.coverImage = news.coverImage;
+                    this.user.id = news.user.id;
+                    this.user.login = news.user.login;
+                }
+            }
+            else this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
                 this.id = responce.id;
                 this.title = responce.title;
                 this.text = responce.text;
+                this.created = responce.created;
                 this.coverText = responce.coverText;
                 this.coverImage = responce.coverImage;
+                this.user.id = responce.user.id;
+                this.user.login = responce.user.login;
             });
         },
         computed: {

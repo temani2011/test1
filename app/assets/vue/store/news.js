@@ -57,7 +57,10 @@ export default {
         [FETCHING_NEWS_SUCCESS](state, news) {
             state.isLoading = false;
             state.error = null;
-            state.news = news;
+            console.log(news);
+            if(Array.isArray(news))
+                state.news = news;
+            else state.news.unshift(news);
         },
         // [FETCHING_NEWS_ERROR](state){
         //     state.isLoading = false;
@@ -72,6 +75,7 @@ export default {
         [UPDATING_NEWS_SUCCESS](state, news) {
             state.isLoading = false;
             state.error = null;
+            state.news.unshift(news);
             const index = state.news.findIndex(newsItem => newsItem.id === news.id);
             console.log(index);
             Vue.set(state.news, index, news);

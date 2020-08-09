@@ -118,7 +118,21 @@
             }
         },
         created() {
-            this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
+            if(this.$store.getters["news/hasNews"]) {
+                let news = this.$store.getters["news/getNews"];
+                news = news.find(x => x.id == this.$route.params.id);
+                if(typeof news !== 'undefined') {
+                    this.id = news.id;
+                    this.title = news.title;
+                    this.text = news.text;
+                    this.created = news.created;
+                    this.coverText = news.coverText;
+                    this.coverImage = news.coverImage;
+                    this.user.id = news.user.id;
+                    this.user.login = news.user.login;
+                }
+            }
+            else this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
                 this.id = responce.id;
                 this.title = responce.title;
                 this.text = responce.text;
@@ -167,7 +181,7 @@
             },
             canEditPost(){
                 var curuser = this.$store.getters["security/getUserData"];
-                console.log(this.id);
+                console.log(this.user.id + ' ' + curuser.id);
                 if(this.user.id === curuser.id) return true;
                 else return false;
             }

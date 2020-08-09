@@ -85,7 +85,17 @@
             }
         },
         created() {
-            this.$store.dispatch("user/getUserById", this.$route.params.id).then(response => {
+            if(this.$store.getters["user/hasUsers"]) {
+                let user = this.$store.getters["user/getUsers"];
+                user = user.find(x => x.id == this.$route.params.id);
+                console.log(user);
+                if(typeof user !== 'undefined') {
+                    this.id = user.id;
+                    this.login = user.login;
+                    this.roles = user.roles;
+                }
+            }
+            else this.$store.dispatch("user/getUserById", this.$route.params.id).then(response => {
                 this.id = response.id;
                 this.login = response.login;
                 this.roles = response.roles;

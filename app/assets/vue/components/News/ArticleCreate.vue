@@ -89,8 +89,11 @@
         },
         methods: {
             fileChange(event){
-                var fileName = event.target.files[0].name;
-                document.querySelector('.text-file-input').value = fileName;
+                //this.coverImage = event.target.files[0];
+                let file = event.target.files[0];
+                //let formData = new FormData();
+                //formData.append('file', file);
+                document.querySelector('.text-file-input').value = file.name;
             },
             editorInit() {
                 this.$refs.tm.editor.setContent(this.text);

@@ -10,7 +10,7 @@ export default {
         });
     },
     getAllUsers(){
-        return axios.get("/api/user");
+        return axios.get("/api/users");
     },
     getUserById(id){
         return axios.get("/api/user/" + id);
@@ -25,6 +25,6 @@ export default {
         });
     },
     deleteUser(id){
-        return axios.delete("/api/news/" + id );
+        return axios.delete("/api/user/" + id );
     }
 };
