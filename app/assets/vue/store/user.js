@@ -56,7 +56,7 @@ export default {
             state.isLoading = false;
             state.error = null;
             const index = state.users.findIndex(userItem => userItem.id === user.id);
-            Vue.set(state.users, index, user);
+            state.users.splice(index, 1, user);
         },
         [DELETING_USER_SUCCESS](state, user) {
             state.isLoading = false;

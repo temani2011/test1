@@ -75,10 +75,8 @@ export default {
         [UPDATING_NEWS_SUCCESS](state, news) {
             state.isLoading = false;
             state.error = null;
-            state.news.unshift(news);
             const index = state.news.findIndex(newsItem => newsItem.id === news.id);
-            console.log(index);
-            Vue.set(state.news, index, news);
+            state.news.splice(index, 1, news);
         },
         [DELETING_NEWS_SUCCESS](state, news) {
             state.isLoading = false;

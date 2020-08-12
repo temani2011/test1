@@ -35,7 +35,7 @@
                     <form class="input-group mb-3" id="file-form">
                         <div class="input-group-prepend">
                             <label id="file-input-btn" class="btn btn-md btn-outline-primary m-0 px-3 py-2 z-depth-0 waves-effect">
-                                Обзор <input @change="fileChange($event)" id="file-input" type="file" hidden>
+                                Обзор <input @change="uploadFile($event)" id="file-input" type="file" hidden>
                             </label>
                         </div>
                         <input v-model="coverImage" type="text" value="Choose file..." class="form-control text-file-input" placeholder="" aria-label="" aria-describedby="basic-addon1">
@@ -59,6 +59,7 @@
         name: "ArticleEdit",
         data() {
             return {
+                file: '',
                 toolbar1: '',
                 id: '',
                 coverText: '',
@@ -78,8 +79,6 @@
                     this.created = news.created;
                     this.coverText = news.coverText;
                     this.coverImage = news.coverImage;
-                    this.user.id = news.user.id;
-                    this.user.login = news.user.login;
                 }
             }
             else this.$store.dispatch("news/getNews", this.$route.params.id).then(responce => {
@@ -89,8 +88,6 @@
                 this.created = responce.created;
                 this.coverText = responce.coverText;
                 this.coverImage = responce.coverImage;
-                this.user.id = responce.user.id;
-                this.user.login = responce.user.login;
             });
         },
         computed: {
@@ -115,17 +112,24 @@
             },
         },
         methods: {
-            fileChange(event){
-                var fileName = event.target.files[0].name;
-                document.querySelector('.text-file-input').value = fileName;
+            async uploadFile(event){
+                event.preventDefault();
+                this.file = event.target.files[0];
+                this.coverImage = this.file.name;
             },
             editorInit() {
                 this.$refs.tm.editor.setContent(this.text);
             },
             async editNews(event){
-                console.log(this.id, this.coverText, this.coverImage, this.title, this.text);
-                let p = [this.id, this.coverText, this.coverImage, this.title, this.text];
-                const result = await this.$store.dispatch("news/putNews", p);
+                let formData = new FormData();
+                formData.append('file', this.file);
+                formData.append('title', this.title);
+                formData.append('text', this.text);
+                formData.append('coverImage', this.coverImage);
+                formData.append('coverText', this.coverText);
+                formData.append('_method', 'PUT');
+                console.log(formData);
+                const result = await this.$store.dispatch("news/putNews", [ this.id, formData ]);
                 this.$router.push({path:'/news/' + result.id});
             },
         }

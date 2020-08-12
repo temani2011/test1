@@ -35,10 +35,13 @@
                     <form class="input-group mb-3" id="file-form">
                         <div class="input-group-prepend">
                             <label id="file-input-btn" class="btn btn-md btn-outline-primary m-0 px-3 py-2 z-depth-0 waves-effect">
-                                Обзор <input @change="fileChange($event)" id="file-input" type="file" hidden>
+                                Обзор <input @change="uploadFile($event)" id="file-input" type="file" hidden>
                             </label>
                         </div>
                         <input v-model="coverImage" type="text" value="Choose file..." class="form-control text-file-input" placeholder="" aria-label="" aria-describedby="basic-addon1">
+                        <div class="d-inline float-right text-muted my-auto" v-if="this.coverImage">
+                            <button @click="deleteFile($event)" class="close pl-3" style="outline: none;"><i class="fa fa-times pr-1"></i></button>
+                        </div>
                     </form>
 
                     <button form="file-form" @click="createNews()" class="btn btn-md m-0 btn-primary">Сохранить</button>
@@ -51,6 +54,7 @@
 <script>
     import tinymce from 'vue-tinymce-editor';
     import ErrorMessage from "../ErrorMessage";
+    import FilesAPI from "../../api/files";
     export default {
         components:{
             tinymce,
@@ -59,6 +63,7 @@
         name: "ArticleCreate",
         data() {
             return {
+                file: '',
                 toolbar1: '',
                 coverText: '',
                 coverImage: '',
@@ -88,20 +93,23 @@
             },
         },
         methods: {
-            fileChange(event){
-                //this.coverImage = event.target.files[0];
-                let file = event.target.files[0];
-                //let formData = new FormData();
-                //formData.append('file', file);
-                document.querySelector('.text-file-input').value = file.name;
+            async uploadFile(event){
+                event.preventDefault();
+                this.file = event.target.files[0];
+                this.coverImage = this.file.name;
             },
             editorInit() {
                 this.$refs.tm.editor.setContent(this.text);
             },
             async createNews(event){
-                console.log(this.coverText, this.coverImage, this.title, this.text);
-                let p = [this.coverText, this.coverImage, this.title, this.text];
-                const result = await this.$store.dispatch("news/postNews", p);
+                let formData = new FormData();
+                formData.append('file', this.file);
+                formData.append('title', this.title);
+                formData.append('text', this.text);
+                formData.append('coverImage', this.coverImage);
+                formData.append('coverText', this.coverText);
+                console.log(formData);
+                const result = await this.$store.dispatch("news/postNews", formData);
                 this.$router.push({path:'/news/' + result.id });
             },
         }

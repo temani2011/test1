@@ -19,6 +19,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
+use App\Service\FileUploader;
 /**
  * @Rest\Route("/api")
  */
@@ -39,12 +40,18 @@ final class NewsController extends AbstractController
      */
     private $validator;
 
+    /**
+     * @var FileUploader
+     */
+    private $fileUploader;
+
     public function __construct(EntityManagerInterface $em,
                                 SerializerInterface $serializer,
-                                ValidatorInterface $validator){
+                                ValidatorInterface $validator, FileUploader $fileUploader){
         $this->em = $em;
         $this->serializer = $serializer;
         $this->validator = $validator;
+        $this->fileUploader = $fileUploader;
     }
 
     /**
@@ -57,28 +64,42 @@ final class NewsController extends AbstractController
      */
     public function postNewsAction(Request $request): JsonResponse
     {
+
+        $user = $this->getUser();
         $title = $request->request->get("title");
         $text = $request->request->get('text');
-        $coverText = $request->request->get('$coverText');
-        $coverImage = $request->request->get('$coverImage');
+        $coverText = $request->request->get('coverText');
+        $coverImage = $request->request->get('coverImage');
+
+        if($request->files->get('file')) {
+            $this->fileUploader->setTargetDirectory($this->fileUploader->getTargetDirectory()
+                . $user->getLogin() . '/news');
+            $fileName = $this->fileUploader->upload($request->files->get('file'));
+            $coverImage = $this->fileUploader->getTargetDirectory() . '/' . $fileName;
+        }
+
         $news = new News();
         $news->setTitle($title)
             ->setText($text)
             ->setCoverImage($coverImage)
             ->setCoverText($coverText)
-            ->setUser($this->getUser());
-        $errors = $this->validator->validate($news);
-        if(count($errors) > 0) {
-            throw new BadRequestHttpException((string) $errors);
-        }
+            ->setUser($user);
+
+        //bad errors handling
+//      $errors = $this->validator->validate($news);
+//      if(count($errors) > 0) {
+//          throw new BadRequestHttpException((string) $errors);
+//      }
+
         try {
             $this->em->persist($news);
             $this->em->flush();
         }
         catch(\Exception $e){
-            throw new BadRequestHttpException($e);
+            throw new BadRequestHttpException($e->getMessage());
         }
         $data = $this->serializer->serialize($news, JsonEncoder::FORMAT, ['groups' => ['News_default']]);
+//        $data = $this->serializer->serialize($request, JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_CREATED, [], true);
     }
 
@@ -121,15 +142,30 @@ final class NewsController extends AbstractController
      */
     public function putNewsAction(string $id, Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        array_key_exists('title',$data) ? $title = $data['title'] : $title = "";
-        array_key_exists('text',$data) ? $text = $data['text'] : $text = "";
-        array_key_exists('coverText',$data) ? $coverText = $data['coverText'] : $coverText = "";
-        array_key_exists('coverImage',$data) ? $coverImage = $data['coverImage'] : $coverImage = "";
+        $news = $this->em->getRepository(News::class)->find(Uuid::fromString($id));
+        $user = $this->getUser();
+
+ //     $data = json_decode($request->getContent(), true);
+        $title = $request->request->get("title");
+        $text = $request->request->get('text');
+        $coverText = $request->request->get('coverText');
+        $coverImage = $request->request->get('coverImage');
+
+        $curCoverImage = $news->getCoverImage();
+        if($curCoverImage != $coverImage){
+            $this->fileUploader->delete($curCoverImage);
+            if($request->files->get('file')) {
+                $this->fileUploader->setTargetDirectory($this->fileUploader->getTargetDirectory()
+                    . $user->getLogin() . '/news');
+                $fileName = $this->fileUploader->upload($request->files->get('file'));
+                $coverImage = $this->fileUploader->getTargetDirectory() . '/' . $fileName;
+            }
+        }
+
         if (!Uuid::isValid($id)) {
             throw new \InvalidArgumentException(sprintf('%s is not a valid Uuid.', $id));
         }
-        $news = $this->em->getRepository(News::class)->find(Uuid::fromString($id));
+
         if (!$news) {
             throw new BadRequestHttpException('No product found for id '.$id);
         }
@@ -137,10 +173,10 @@ final class NewsController extends AbstractController
             ->setText($text)
             ->setCoverText($coverText)
             ->setCoverImage($coverImage);
-        $errors = $this->validator->validate($news);
-        if(count($errors) > 0) {
-            throw new BadRequestHttpException((string) $errors);
-        }
+//        $errors = $this->validator->validate($news);
+//        if(count($errors) > 0) {
+//            throw new BadRequestHttpException((string) $errors);
+//        }
         try {
             $this->em->persist($news);
             $this->em->flush();
@@ -149,6 +185,7 @@ final class NewsController extends AbstractController
             throw new BadRequestHttpException($e);
         }
         $data = $this->serializer->serialize($news, JsonEncoder::FORMAT, ['groups' => ['News_default']]);
+//        $data = $this->serializer->serialize($request, JsonEncoder::FORMAT);
         return new JsonResponse($data,Response::HTTP_OK, [], true);
     }
 
@@ -160,13 +197,19 @@ final class NewsController extends AbstractController
      */
     public function deleteNewsAction(string $id): JsonResponse
     {
+        $news = $this->em->getRepository(News::class)->find(Uuid::fromString($id));
+
         if (!Uuid::isValid($id)) {
             throw new \InvalidArgumentException(sprintf('%s is not a valid Uuid.', $id));
         }
-        $news = $this->em->getRepository(News::class)->find(Uuid::fromString($id));
+
         if (!$news) {
-            throw new BadRequestHttpException('No product found for id '.$id);
+            throw new BadRequestHttpException('No news found for id '.$id);
         }
+
+        $curCoverImage = $news->getCoverImage();
+        if($curCoverImage) $this->fileUploader->delete($curCoverImage);
+
         try {
             $this->em->remove($news);
             $this->em->flush();

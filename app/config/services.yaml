@@ -4,7 +4,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
-
+    upload_files_base_dir: '%kernel.project_dir%/public'
+    upload_files_dir: '/uploads/'
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -28,10 +29,17 @@ services:
     App\Exception\HTTPExceptionListener:
         tags:
             - { name: kernel.event_listener, event: kernel.exception }
+
+    App\Service\FileUploader:
+        arguments:
+            $baseDirectory: '%upload_files_base_dir%'
+            $targetDirectory: '%upload_files_dir%'
+
     app.security.hash.password.listener:
         class: App\Security\HashPasswordListener
         tags:
             - { name: doctrine.event_subscriber }
+
     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
         arguments:
             - !service { class: PDO, factory: 'database_connection:getWrappedConnection' }

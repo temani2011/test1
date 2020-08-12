@@ -7,13 +7,13 @@ services:
             - ./docker/nginx/default-php-fpm.conf:/etc/nginx/conf.d/default.conf
             - ./docker/nginx/mongo-express.conf:/etc/ngidnx/conf.d/mongo-express.conf
             - ./docker/nginx/phpmyadmin.conf:/etc/nginx/conf.d/phpmyadmin.conf
+            - ./docker/nginx/log/:/var/log/nginx
             - ./app:/var/www/app
         ports:
             - "80:80"
     php-fpm:
-        #build:
-        #            context: ./docker/php-fpm
-        image: test1_php-fpm
+        build:
+            context: ./docker/php-fpm
         volumes:
             - ./app:/var/www/app
             - ./docker/php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf
@@ -25,8 +25,8 @@ services:
             APP_ENV: "dev"
             APP_SECRET: "1fd2d4c91f5cbf4e3d4714888a88b349"
             DATABASE_URL: "mysql://$MYSQL_USER:$MYSQL_PASSWORD@mysql:3306/$MYSQL_DATABASE"
-        #ports:
-        #    - "9000:9000"
+        ports:
+            - "9000:9000"
     mysql:
         image: mysql:5.7
         #restart: always
