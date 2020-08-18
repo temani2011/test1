@@ -51,9 +51,9 @@ services:
 #            - ./docker/mysql_test/utf8mb4.cnf:/etc/mysql/conf.d/utf8mb4.cnf:ro
 
     phpmyadmin:
-        image: phpmyadmin/phpmyadmin:latest
-        volumes:
-            - /sessions
+        image: phpmyadmin/phpmyadmin
+#        volumes:
+#            - /sessions
         environment:
             PMA_HOST: "mysql"
             PMA_USER: "$MYSQL_USER"
