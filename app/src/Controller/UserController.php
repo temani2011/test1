@@ -68,8 +68,7 @@ final class UserController extends AbstractController
         if($user) throw new BadRequestHttpException('user with that login already exist');
         $user = new User();
         $user->setLogin($request->request->get('login'));
-        $user->setPassword($request->request->get('password'));
-        //$user->setPlainPassword($request->request->get('password'));
+        $user->setPlainPassword($request->request->get('password'));
         $user->setRoles($request->request->get('roles'));
 //        $errors = $this->validator->validate($user);
 //        if(count($errors) > 0) {

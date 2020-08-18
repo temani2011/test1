@@ -152,6 +152,7 @@
         },
     }
 </script>
+
 <style lang="sass">
     @import './sass/main.sass';
 </style>
