@@ -1,2 +1,0 @@
-2020/08/14 17:24:12 [error] 6#6: *1 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.56.1, server: my.example.com, request: "GET /news HTTP/1.1", upstream: "fastcgi://172.23.0.4:9000", host: "example.com"
-2020/08/14 17:24:12 [error] 6#6: *1 connect() failed (111: Connection refused) while connecting to upstream, client: 192.168.56.1, server: my.example.com, request: "GET /favicon.ico HTTP/1.1", upstream: "fastcgi://172.23.0.4:9000", host: "example.com", referrer: "http://example.com/news"
