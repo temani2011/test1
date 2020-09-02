@@ -35,6 +35,11 @@ services:
             $baseDirectory: '%upload_files_base_dir%'
             $targetDirectory: '%upload_files_dir%'
 
+#   Dosen't work properly
+#    App\Listeners\MyEventSubscriber:
+#        tags:
+#            - { name: doctrine_mongodb.odm.event_listener, event: postLoad}
+
     app.security.hash.password.listener:
         class: App\Security\HashPasswordListener
         tags:

@@ -40,6 +40,7 @@ final class FilesController extends AbstractController
      */
     public function uploadFileAction(Request $request): JsonResponse
     {
+        //?
         $user = $this->getUser();
         $this->fileUploader->setTargetDirectory($this->fileUploader->getTargetDirectory()
         . $user->getLogin() .'/'. $request->request->get('componentName'));
@@ -65,4 +66,50 @@ final class FilesController extends AbstractController
         $data = $this->serializer->serialize($request, JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
+
+    ///
+    /// multiple files rest api
+    ///
+
+    /**
+     * Upload files
+     * @throws BadRequestHttpException
+     * @Rest\Post("/files", name="uploadFiles")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function uploadFilesAction(Request $request): JsonResponse
+    {
+        $user = $this->getUser();
+        $this->fileUploader->setTargetDirectory($this->fileUploader->getTargetDirectory()
+            . $user->getLogin() .'/'. $request->request->get('componentName'));
+        $files = $request->files->get('file');
+        $fullPaths = [];
+        foreach($files as $file) {
+            $fileName = $this->fileUploader->upload($file);
+            $fullPaths[] = $this->fileUploader->getTargetDirectory() . '/' . $fileName;
+        }
+        $request->request->set('fullPath', $fullPaths);
+        $data = $this->serializer->serialize($request, JsonEncoder::FORMAT);
+        return new JsonResponse($data, Response::HTTP_CREATED, [], true);
+    }
+
+    /**
+     * Delete files
+     * @throws BadRequestHttpException
+     * @Rest\Delete("/files", name="deleteFiles")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteFilesAction(Request $request): JsonResponse
+    {
+//        $user = $this->getUser();
+////        $this->fileUploader->setTargetDirectory($this->fileUploader->getTargetDirectory()
+////            . $user->getLogin() .'/'. $request->request->get('componentName'));
+//        $fileName = $this->fileUploader->delete($request->request->get('fileName'));
+//        $data = $this->serializer->serialize($request, JsonEncoder::FORMAT);
+//        return new JsonResponse($data, Response::HTTP_OK, [], true);
+    }
+
+
 }

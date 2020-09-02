@@ -24,7 +24,7 @@ class User implements UserInterface
     /**
      * @ORM\Id
      * @ORM\Column(type="uuid", unique=true)
-     * @Groups({"User_default", "News_default"})
+     * @Groups({"User_default", "News_default", "User_simple"})
      * @var UuidInterface
      */
     private $id;
@@ -34,7 +34,7 @@ class User implements UserInterface
      *
      * @var string
      * @Assert\NotBlank()
-     * @Groups({"User_default","News_default"})
+     * @Groups({"User_default","News_default", "User_simple"})
      */
     private $login;
 

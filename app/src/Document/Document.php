@@ -3,21 +3,15 @@
 namespace App\Document;
 
 use DateTime;
-use App\Entity\User;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Date;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Id;
 /**
- * @MongoDB\EmbeddedDocument
  * @MongoDB\HasLifecycleCallbacks
  */
-class Comment
+class Document
 {
-    /**
-     * @MongoDb\Field(type="string")
-     */
-    protected $slug;
     /**
      * @MongoDb\Field(type="date")
      */
@@ -26,25 +20,20 @@ class Comment
      * @MongoDb\Field(type="hash")
      */
     protected $author;
+
     /**
      * @MongoDb\Field(type="string")
      */
-    protected $text;
+    protected $path;
+
+    /**
+     * @MongoDb\Field(type="string")
+     */
+    protected $filename;
 
     public function __construct()
     {
         $this->author = [];
-    }
-
-    public function getSlug()
-    {
-        return $this->slug;
-    }
-
-    public function setSlug($slug)
-    {
-        $this->slug = $slug;
-        //return $this;
     }
 
     /**
@@ -70,14 +59,25 @@ class Comment
         $this->author = $author;
     }
 
-    public function getText()
+    public function getPath()
     {
-        return $this->text;
+        return $this->path;
     }
 
-    public function setText(string $text)
+    public function setPath($path)
     {
-        $this->text = $text;
+        $this->path = $path;
+        return $this;
+    }
+
+    public function getFileName()
+    {
+        return $this->filename;
+    }
+
+    public function setFileName($fileName)
+    {
+        $this->filename = $fileName;
         return $this;
     }
 

@@ -63,9 +63,9 @@ class Bucket
         return $this->postId;
     }
 
-    public function setPostId()
+    public function setPostId($postId)
     {
-        return $this->id;
+        $this->postId = $postId;
     }
 
     /**
@@ -108,10 +108,11 @@ class Bucket
     public function removeComments(Comment $comment)
     {
         $this->comments->removeElement($comment);
+        $this->count--;
     }
 
     /**
-     * @return Collection $comments
+     * @return ArrayCollection $comments
      */
     public function getComments()
     {
