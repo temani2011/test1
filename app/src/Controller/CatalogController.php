@@ -7,7 +7,9 @@ namespace App\Controller;
 use App\Document\Catalog;
 use App\Document\Document;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ODM\MongoDB\Iterator\PrimingIterator;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use mysql_xdevapi\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +22,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Cocur\Slugify\Slugify;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
+use App\Service\FileUploader;
 /**
  * @Rest\Route("/api")
  */
@@ -40,12 +43,19 @@ final class CatalogController extends AbstractController
      */
     private $validator;
 
+    /**
+     * @var FileUploader
+     */
+    private $fileUploader;
+
     public function __construct(DocumentManager $dm,
                                 SerializerInterface $serializer,
-                                ValidatorInterface $validator){
+                                ValidatorInterface $validator,
+                                FileUploader $fileUploader){
         $this->dm = $dm;
         $this->serializer = $serializer;
         $this->validator = $validator;
+        $this->fileUploader = $fileUploader;
     }
 
     /**
@@ -53,7 +63,6 @@ final class CatalogController extends AbstractController
      * @param Request $request
      * @return JsonResponse
      */
-
     public function catalogPost(Request $request) : JsonResponse
     {
         $user = $this->getUser();
@@ -65,6 +74,7 @@ final class CatalogController extends AbstractController
         $catalog->setSlug($catalog->getName());
         if($parentId) {
             $parent = $this->dm->createQueryBuilder(Catalog::class)
+                ->field('childs')->prime(true)
                 ->field('id')->equals($parentId)
                 ->getQuery()
                 ->getSingleResult();
@@ -74,7 +84,8 @@ final class CatalogController extends AbstractController
             $parent->addChild($catalog);
             $this->commitChanges($parent, true);
         } else $this->commitChanges($catalog, true);
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT, ['groups' => ['Catalog_default']]);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+            ['groups' => ['Catalog_default', 'Catalog_childs']]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
@@ -84,9 +95,14 @@ final class CatalogController extends AbstractController
      */
     public function catalogGetAll() : JsonResponse
     {
-        $catalogs = $this->dm->getRepository(Catalog::class)->findBy(['parent.id'=>null]);
-        if(!$catalogs) throw new BadRequestHttpException("catalogs are empty");
-        $data = $this->serializer->serialize($catalogs, JsonEncoder::FORMAT, ['groups' => ['Catalog_default']]);
+        $catalogs = $this->dm->createQueryBuilder(Catalog::class)
+            ->field('childs')->prime(true)
+            ->field('parent')->equals(null)
+            ->getQuery()
+            ->execute();
+        if(!$catalogs) throw new BadRequestHttpException("there is no catalogs");
+        $data = $this->serializer->serialize($catalogs, JsonEncoder::FORMAT,
+            ['groups' => ['Catalog_default', 'Catalog_childs' ]]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
@@ -97,44 +113,109 @@ final class CatalogController extends AbstractController
      */
     public function catalogGet(string $id) : JsonResponse
     {
-        $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['id' => $id]);
+        $catalog = $this->dm->createQueryBuilder(Catalog::class)
+            ->field('childs')->prime(true)
+            ->field('_id')->equals($id)
+            ->getQuery()
+            ->execute();
         if(!$catalog) throw new BadRequestHttpException("catalog not found");
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT, ['groups' => ['Catalog_default']]);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+            ['groups' => ['Catalog_default', 'Catalog_childs' ]]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @Rest\Delete("/comment/slug={slug}")
+     * @Rest\Get("/catalog/{slug}")
+     * @param string $slug
      * @return JsonResponse
      */
-    public function commentDeleteBySlug(string $slug) : JsonResponse
+    public function catalogGetBySlug(string $slug) : JsonResponse
     {
-//        $buckets = $this->dm->getRepository(Bucket::class)->findOneBy(['comments.slug' => $slug]);
-//        if(!$buckets) throw new BadRequestHttpException("Comments are empty");
-//        foreach ($buckets->getComments() as $comments)
-//            if($comments->getSlug()==$slug)
-//                $comment = $comments;
-//        $buckets->removeComments($comment);
-//        $this->commitChanges($buckets, true);
-//        $data = $this->serializer->serialize($buckets, JsonEncoder::FORMAT);
-//        return new JsonResponse($data, Response::HTTP_OK, [], true);
+        $catalog = $this->dm->createQueryBuilder(Catalog::class)
+            ->field('childs')->prime(true)
+            ->field('slug')->equals($slug)
+            ->getQuery()
+            ->execute();
+        if(!$catalog) throw new BadRequestHttpException("catalog not found");
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+            ['groups' => ['Catalog_default', 'Catalog_childs' ]]);
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @Rest\Delete("/comment/{pid}")
+     * @Rest\Put("/catalog/{id}")
+     * @param Request $request
+     * @param string $id
      * @return JsonResponse
      */
-    public function commentDeleteByPostId(string $pid) : JsonResponse
+
+    public function catalogUpdate(Request $request, string $id) : JsonResponse
     {
-//        $buckets = $this->dm->getRepository(Bucket::class)->findBy(['postId' => $pid]);
-//        if(!$buckets) throw new BadRequestHttpException("Comments are empty");
-//        foreach ($buckets as $bucket)
-//            $this->commitChanges($bucket, false);
-//        $data = $this->serializer->serialize($buckets, JsonEncoder::FORMAT);
-//        return new JsonResponse($data, Response::HTTP_OK, [], true);
+        $catalog = $this->dm->createQueryBuilder(Catalog::class)
+            ->field('childs')->prime(true)
+            ->field('_id')->equals($id)
+            ->getQuery()
+            ->getSingleResult();
+        $newParentId = $request->request->get('newCatalogId');
+        $catalog->setName($request->request->get('name'));
+        if($newParentId) {
+            $parent = $catalog->getParent();
+            $newParent = $this->dm->createQueryBuilder(Catalog::class)
+                ->field('childs')->prime(true)
+                ->field('_id')->equals($newParentId)
+                ->getQuery()
+                ->getSingleResult();
+
+            $parent->removeChild($catalog);
+            $this->commitChanges($parent, true);
+
+            $catalog->setSlug($newParent->getSlug() . '/' . $catalog->getName());
+            $newlevel = $newParent->getLevel();
+            $catalog->setLevel(++$newlevel);
+            $this->commitChanges($catalog, true);
+
+            $newParent->addChild($catalog);
+            $this->commitChanges($newParent, true);
+        } else $this->commitChanges($catalog, true);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+            ['groups' => ['Catalog_default', 'Catalog_childs']]);
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
-    public function commitChanges(Catalog $catalog, bool $isPersist){
+    /**
+     * @Rest\Delete("/catalog/{id}")
+     * @return JsonResponse
+     */
+    public function catalogDeleteById(string $id) : JsonResponse
+    {
+        $catalog = $this->dm->createQueryBuilder(Catalog::class)
+            ->field('childs')->prime(true)
+            ->field('_id')->equals($id)
+            ->getQuery()
+            ->getSingleResult();
+        if(!$catalog) throw new BadRequestHttpException("catalog not found");
+        $this->deleteDocumentsFromCatalog($catalog);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+            ['groups' => ['Catalog_default', 'Catalog_childs']]);
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
+    }
+
+     function deleteDocumentsFromCatalog($catalog) {
+         if($catalog->getChildsCount() > 0) {
+             foreach ($catalog->getChilds() as $child)
+                 $this->deleteDocumentsFromCatalog($child);
+         }
+         foreach ($catalog->getDocuments() as $document){
+             $curDocPath = $document->getPath();
+             if(!$curDocPath) throw new BadRequestHttpException(
+                 'Wrong path or record in catalog ' . $catalog->getSlug() . ' with id ' . $catalog->getId());
+             $this->fileUploader->delete($curDocPath);
+             $catalog->removeDocument($document);
+         }
+         $this->commitChanges($catalog, false);
+    }
+
+     function commitChanges(Catalog $catalog, bool $isPersist){
         try {
             ($isPersist) ? $this->dm->persist($catalog) : $this->dm->remove($catalog);
             $this->dm->flush();

@@ -123,7 +123,7 @@ final class CommentController extends AbstractController
             if($comments->getSlug()==$slug)
                 $comment = $comments;
         $buckets->removeComments($comment);
-        $this->commitChanges($buckets, true);
+        $this->commitChanges($buckets, false);
         $data = $this->serializer->serialize($buckets, JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }

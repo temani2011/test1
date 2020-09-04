@@ -7,33 +7,53 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Date;
 use Doctrine\ODM\MongoDB\Mapping\Annotations\Id;
+use Symfony\Component\Serializer\Annotation\Groups;
 /**
+ * @MongoDB\EmbeddedDocument
  * @MongoDB\HasLifecycleCallbacks
  */
 class Document
 {
     /**
+     * @MongoDB\Id(strategy="UUID")
+     * @Groups({"Catalog_default"})
+     */
+    protected $id;
+
+    /**
      * @MongoDb\Field(type="date")
+     * @Groups({"Catalog_default"})
      */
     protected $createdAt;
     /**
      * @MongoDb\Field(type="hash")
+     * @Groups({"Catalog_default"})
      */
     protected $author;
 
     /**
      * @MongoDb\Field(type="string")
+     * @Groups({"Catalog_default"})
      */
     protected $path;
 
     /**
      * @MongoDb\Field(type="string")
+     * @Groups({"Catalog_default"})
      */
     protected $filename;
 
     public function __construct()
     {
         $this->author = [];
+    }
+
+    /**
+     * @return id $id
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**

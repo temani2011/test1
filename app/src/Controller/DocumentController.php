@@ -6,8 +6,10 @@ namespace App\Controller;
 
 use App\Document\Catalog;
 use App\Document\Document;
+use App\Service\FileUploader;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use mysql_xdevapi\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,12 +42,19 @@ final class DocumentController extends AbstractController
      */
     private $validator;
 
+    /**
+     * @var FileUploader
+     */
+    private $fileUploader;
+
     public function __construct(DocumentManager $dm,
                                 SerializerInterface $serializer,
-                                ValidatorInterface $validator){
+                                ValidatorInterface $validator,
+                                FileUploader $fileUploader){
         $this->dm = $dm;
         $this->serializer = $serializer;
         $this->validator = $validator;
+        $this->fileUploader = $fileUploader;
     }
 
     /**
@@ -58,84 +67,129 @@ final class DocumentController extends AbstractController
     {
         $user = $this->getUser();
         $catalogId = $request->request->get('catalogId');
-        $document = new Catalog();
-        $entityAsArray = $this->serializer->normalize($user, null, ['groups' => ['User_default']]);
-
-        $files = $request->files->get('file');
-        $fullPaths = [];
-        if($request->files->get('file')) {
+        $entityAsArray = $this->serializer->normalize($user, null, ['groups' => ['User_simple']]);
+        $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['id'=>$catalogId]);
+        $files = $request->files;
+        if($files) {
             $this->fileUploader->setTargetDirectory($this->fileUploader->getTargetDirectory()
-                . $user->getLogin() . '/news');
+                . $user->getLogin() . '/documents');
             foreach($files as $file) {
-                $fileName = $this->fileUploader->upload($file);
-                $fullPaths[] = $this->fileUploader->getTargetDirectory() . '/' . $fileName;
+                try {
+                    $fileName = $this->fileUploader->upload($file);
+                    $fullPath = $this->fileUploader->getTargetDirectory() . '/' . $fileName;
+                    $document = new Document();
+                    $document->setFileName($fileName)
+                        ->setPath($fullPath)
+                        ->setAuthor($entityAsArray);
+                    $catalog->addDocument($document);
+                } catch (Exception $e) { throw new BadRequestHttpException($e->getMessage());}
             }
         }
-
-        $document->setFileName($request->request->get('fileName'))
-            ->setPath($fullPaths)
-            ->setAuthor($entityAsArray);
-        $catalog = $this->dm->getRepository(Catalog::class)->findBy(['id'=>$catalogId]);
-        $catalog->addDocument($document);
         $this->commitChanges($catalog, true);
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT, ['groups' => ['Catalog_default']]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @Rest\Get("/catalog/{slug}")
-     * @param string $slug
+     * @Rest\Get("/document/name={name}")
+     * @param string $name
      * @return JsonResponse
      */
-    public function catalogGet(string $slug) : JsonResponse
+    public function documentGetByName(string $name) : JsonResponse
     {
-        $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['slug' => $slug]);
-        if(!$catalog) throw new BadRequestHttpException("catalog not found");
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT);
+        $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['documents.filename' => $name]);
+        if(!$catalog) throw new BadRequestHttpException("document not found");
+        foreach ($catalog->getDocuments() as $document)
+            if($document->getFileName() == $name)
+                $fdocument = $document;
+        $data = $this->serializer->serialize($fdocument, JsonEncoder::FORMAT, ['groups' => ['Catalog_default']]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @Rest\Get("/catalog/all")
+     * @Rest\Get("/document/id={id}")
+     * @param string $id
      * @return JsonResponse
      */
-    public function catalogGetAll() : JsonResponse
+    public function documentGetById(string $id) : JsonResponse
     {
-        $catalogs = $this->dm->getRepository(Bucket::class);
-        if(!$catalogs) throw new BadRequestHttpException("catalogs are empty");
-        $data = $this->serializer->serialize($catalogs, JsonEncoder::FORMAT);
+        $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['documents.id' => $id]);
+        if(!$catalog) throw new BadRequestHttpException("document not found");
+        foreach ($catalog->getDocuments() as $document)
+            if($document->getId() == $id)
+                $fdocument = $document;
+        $data = $this->serializer->serialize($fdocument, JsonEncoder::FORMAT, ['groups' => ['Catalog_default']]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @Rest\Delete("/comment/slug={slug}")
+     * @Rest\Get("/document/catalogId={id}")
      * @return JsonResponse
      */
-    public function commentDeleteBySlug(string $slug) : JsonResponse
+    public function documentGetAllFromCatalog(string $id) : JsonResponse
     {
-//        $buckets = $this->dm->getRepository(Bucket::class)->findOneBy(['comments.slug' => $slug]);
-//        if(!$buckets) throw new BadRequestHttpException("Comments are empty");
-//        foreach ($buckets->getComments() as $comments)
-//            if($comments->getSlug()==$slug)
-//                $comment = $comments;
-//        $buckets->removeComments($comment);
-//        $this->commitChanges($buckets, true);
-//        $data = $this->serializer->serialize($buckets, JsonEncoder::FORMAT);
-//        return new JsonResponse($data, Response::HTTP_OK, [], true);
+        $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['id' => $id]);
+        if(!$catalog) throw new BadRequestHttpException("catalogs are empty");
+        $data = $this->serializer->serialize($catalog->getDocuments(), JsonEncoder::FORMAT);
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @Rest\Delete("/comment/{pid}")
+     * @Rest\Put("/document/{id}")
+     * @param string $id
      * @return JsonResponse
      */
-    public function commentDeleteByPostId(string $pid) : JsonResponse
+    public function documentUpdate(Request $request, string $id) : JsonResponse
     {
-//        $buckets = $this->dm->getRepository(Bucket::class)->findBy(['postId' => $pid]);
-//        if(!$buckets) throw new BadRequestHttpException("Comments are empty");
-//        foreach ($buckets as $bucket)
-//            $this->commitChanges($bucket, false);
-//        $data = $this->serializer->serialize($buckets, JsonEncoder::FORMAT);
-//        return new JsonResponse($data, Response::HTTP_OK, [], true);
+        $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['documents.id' => $id]);
+        if(!$catalog) throw new BadRequestHttpException("document not found");
+        $fdocument = null;
+        foreach ($catalog->getDocuments() as $document)
+            if($document->getId() == $id) {
+                $document->setFileName($request->request->get('fileName'));
+                $fdocument = $document;
+            }
+        $newCatalogId = $request->request->get('newCatalogId');
+        if($newCatalogId) {
+            $newCatalog = $this->dm->createQueryBuilder(Catalog::class)
+                ->field('childs')->prime(true)
+                ->field('id')->equals($newCatalogId)
+                ->getQuery()
+                ->getSingleResult();
+            if(!$newCatalog) throw new BadRequestHttpException('new catalog not found');
+            $catalog->removeDocument($fdocument);
+            $this->commitChanges($catalog, true);
+
+            $newCatalog->addDocument($fdocument);
+            $this->commitChanges($newCatalog, true);
+        } else $this->commitChanges($catalog, true);
+        $data = $this->serializer->serialize($newCatalog, JsonEncoder::FORMAT,
+            ['groups' => ['Catalog_default', 'Catalog_childs']]);
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * @Rest\Delete("/document/{id}")
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function documentDeleteById(string $id) : JsonResponse
+    {
+        $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['documents.id' => $id]);
+        if(!$catalog) throw new BadRequestHttpException("document not found");
+        $fdocument = null;
+        foreach ($catalog->getDocuments() as $document)
+            if($document->getId() == $id)
+                $fdocument = $document;
+        $curDocPath = $fdocument->getPath();
+        if(!$curDocPath) throw new BadRequestHttpException(
+            'Wrong path or record in catalog ' . $catalog->getSlug() . ' with id ' . $catalog->getId());
+        $this->fileUploader->delete($curDocPath);
+        $catalog->removeDocument($fdocument);
+        $this->commitChanges($catalog, true);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+            ['groups' => ['Catalog_default', 'Catalog_childs']]);
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     public function commitChanges(Catalog $catalog, bool $isPersist){

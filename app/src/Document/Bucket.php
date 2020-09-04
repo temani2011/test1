@@ -97,8 +97,8 @@ class Bucket
      */
     public function addComments(Comment $comment) : bool
     {
-        $this->count++;
         $this->comments[] = $comment;
+        $this->count = $this->comments->count();
         return true;
     }
 
@@ -108,7 +108,7 @@ class Bucket
     public function removeComments(Comment $comment)
     {
         $this->comments->removeElement($comment);
-        $this->count--;
+        $this->count = $this->comments->count();
     }
 
     /**

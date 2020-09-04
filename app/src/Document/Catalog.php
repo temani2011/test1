@@ -50,6 +50,12 @@ class Catalog
      * @MongoDb\Field(type="int")
      * @Groups({"Catalog_default"})
      */
+    protected $level;
+
+    /**
+     * @MongoDb\Field(type="int")
+     * @Groups({"Catalog_default"})
+     */
     protected $childsCount;
 
     /**
@@ -58,20 +64,24 @@ class Catalog
      */
     protected $documentsCount;
 
+    // @MongoDB\ReferenceOne(targetDocument="App\Document\Catalog")
     // @MongoDb\EmbedOne(targetDocument="App\Document\Catalog")
+
     /**
-     * @MaxDepth(3)
-     * @MongoDB\ReferenceOne(targetDocument="App\Document\Catalog")
+     * @MaxDepth(1)
+     * @MongoDb\ReferenceOne(targetDocument=Catalog::class)
      * @MongoDb\Index
-     * @Groups({"Catalog_default"})
+     * @Groups({"Catalog_parent"})
      */
     protected $parent;
 
+    // @MongoDB\ReferenceMany(targetDocument="App\Document\Catalog")
     // @MongoDb\EmbedMany(targetDocument="App\Document\Catalog")
     /**
-     * @MaxDepth(3)
-     * @MongoDB\ReferenceMany(targetDocument="App\Document\Catalog")
+     * @MaxDepth(5)
+     * @MongoDB\ReferenceMany(targetDocument=Catalog::class)
      * @MongoDb\Index
+     * @Groups({"Catalog_childs"})
      */
     protected $childs = [];
 
@@ -134,21 +144,32 @@ class Catalog
     }
 
     /**
+     * @return level
+     */
+    public function getLevel()
+    {
+        return $this->level;
+    }
+    public function setLevel($level)
+    {
+        $this->level = $level;
+    }
+
+    /**
      * @MongoDB\PrePersist
      */
     public function onPrePersist()
     {
         $this->createdAt = new DateTime('NOW');
+        $this->level = count(explode('/', $this->getSlug()));
     }
+
 
     public function getCreatedAt()
     {
         return $this->createdAt;
     }
 
-    /**
-     * @return childsCount
-     */
     public function getChildsCount()
     {
         return $this->childsCount;
@@ -189,7 +210,7 @@ class Catalog
     public function addChild(Catalog $catalog) : bool
     {
         $this->childs[] = $catalog;
-        $this->childsCount++;
+        $this->childsCount = $this->childs->count();
         return true;
     }
 
@@ -199,7 +220,7 @@ class Catalog
     public function removeCatalog(Catalog $catalog)
     {
         $this->childs->removeElement($catalog);
-        $this->childsCount--;
+        $this->childsCount = $this->childs->count();
     }
 
     /**
@@ -216,8 +237,8 @@ class Catalog
      */
     public function addDocument(Document $document) : bool
     {
-        $this->documentsCount[] = $document;
-        $this->documentsCount++;
+        $this->documents[] = $document;
+        $this->documentsCount = $this->documents->count();
         return true;
     }
 
@@ -227,7 +248,7 @@ class Catalog
     public function removeDocument(Document $document)
     {
         $this->documents->removeElement($document);
-        $this->documentsCount--;
+        $this->documentsCount = $this->documents->count();
     }
 
     /**
