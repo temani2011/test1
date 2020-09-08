@@ -13,16 +13,17 @@ import UserSelect from "../components/User/UserSelect";
 import UserCreate from "../components/User/UserCreate";
 import UserEdit from "../components/User/UserEdit";
 import UserDelete from "../components/User/UserDelete";
+import Catalog from "../views/Catalog";
 
 Vue.use(VueRouter);
 
 let router = new VueRouter({
     mode: "history",
     routes: [
-        { path: "/home", component: Home, meta: { requiresAuth: true } },
+        { path: "/home", component: Home },
         { path: "/login", component: Login },
         { path: "/posts", component: Posts, meta: { requiresAuth: true } },
-        { path: "/news/", component: News },
+        { path: "/news", component: News },
         { path: '/news/new', component: ArticleCreate, meta: { requiresAuth: true } },
         { path: "/news/:id", component: ArticleSelect },
         { path: '/news/:id/edit', component: ArticleEdit, meta: { requiresAuth: true }  },
@@ -30,6 +31,7 @@ let router = new VueRouter({
         { path: "/users", component: User, meta: { requiresAuth: true } },
         { path: "/user/:id", component: UserSelect, meta: { requiresAuth: true } },
         { path: "/user/:id/edit", component: UserEdit, meta: { requiresAuth: true } },
+        { path: "/catalogs", component: Catalog, meta: { requiresAuth: true } },
         { path: "*", redirect: "/home" }
     ],
 });

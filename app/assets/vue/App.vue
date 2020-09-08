@@ -54,6 +54,12 @@
                                      :class="currentPage.includes('news') ? activeClass : ''">
                             <div class="md-v-line"></div><i class="fas fa-newspaper mr-4 pr-3"></i>News
                         </router-link>
+                        <router-link to="/catalogs"
+                                     class="list-group-item list-group-item-action"
+                                     active-class="active"
+                                     :class="currentPage.includes('catalogs') ? activeClass : ''">
+                            <div class="md-v-line"></div><i class="fas fa-file mr-4 pr-3"></i>Catalogs
+                        </router-link>
                     </ul>
                 </div>
                 <div id="center" class="col-md-6"><router-view/></div>

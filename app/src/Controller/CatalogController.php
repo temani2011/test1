@@ -84,8 +84,10 @@ final class CatalogController extends AbstractController
             $parent->addChild($catalog);
             $this->commitChanges($parent, true);
         } else $this->commitChanges($catalog, true);
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
-            ['groups' => ['Catalog_default', 'Catalog_childs']]);
+        $catalog = $this->getCatalog($catalog, 1);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT);
+//        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+//            ['groups' => ['Catalog_default', 'Catalog_childs']]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
@@ -95,37 +97,47 @@ final class CatalogController extends AbstractController
      */
     public function catalogGetAll() : JsonResponse
     {
+        $user = $this->getUser();
         $catalogs = $this->dm->createQueryBuilder(Catalog::class)
             ->field('childs')->prime(true)
             ->field('parent')->equals(null)
+            ->field('author.id')->equals($user->getId()->ToString())
             ->getQuery()
             ->execute();
-        if(!$catalogs) throw new BadRequestHttpException("there is no catalogs");
-        $data = $this->serializer->serialize($catalogs, JsonEncoder::FORMAT,
-            ['groups' => ['Catalog_default', 'Catalog_childs' ]]);
+        if(empty($catalogs)) throw new BadRequestHttpException("there is no catalogs");
+        $catalogsArr = null;
+        foreach($catalogs as $catalog)
+            $catalogsArr[] = $this->getCatalog($catalog, 1);
+        $data = $this->serializer->serialize($catalogsArr, JsonEncoder::FORMAT);
+//        $data = $this->serializer->serialize($catalogs, JsonEncoder::FORMAT,
+//            ['groups' => ['Catalog_default', 'Catalog_childs' ]]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
     /**
-     * @Rest\Get("/catalog/{id}")
+     * @Rest\Get("/catalog/{id}", requirements={"id"="[a-fA-F0-9]{8}-?[a-fA-F0-9]{8}-?[a-fA-F0-9]{8}-?[a-fA-F0-9]{8}"})
      * @param string $id
      * @return JsonResponse
      */
-    public function catalogGet(string $id) : JsonResponse
+    public function catalogGetById(string $id) : JsonResponse
     {
         $catalog = $this->dm->createQueryBuilder(Catalog::class)
             ->field('childs')->prime(true)
-            ->field('_id')->equals($id)
+            ->field('id')->equals($id)
             ->getQuery()
-            ->execute();
+            ->getSingleResult();
         if(!$catalog) throw new BadRequestHttpException("catalog not found");
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
-            ['groups' => ['Catalog_default', 'Catalog_childs' ]]);
+        $catalog = $this->getCatalog($catalog, 1);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT);
+//        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+//            ['groups' => ['Catalog_default', 'Catalog_childs' ]]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
+
+
     /**
-     * @Rest\Get("/catalog/{slug}")
+     * @Rest\Get("/catalog/{slug}", requirements={"id"="\w+\\"})
      * @param string $slug
      * @return JsonResponse
      */
@@ -135,10 +147,12 @@ final class CatalogController extends AbstractController
             ->field('childs')->prime(true)
             ->field('slug')->equals($slug)
             ->getQuery()
-            ->execute();
+            ->getSingleResult();
         if(!$catalog) throw new BadRequestHttpException("catalog not found");
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
-            ['groups' => ['Catalog_default', 'Catalog_childs' ]]);
+        $catalog = $this->getCatalog($catalog, 1);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT);
+//        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+//            ['groups' => ['Catalog_default', 'Catalog_childs' ]]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
@@ -149,14 +163,14 @@ final class CatalogController extends AbstractController
      * @return JsonResponse
      */
 
-    public function catalogUpdate(Request $request, string $id) : JsonResponse
+    public function catalogUpdateById(Request $request, string $id) : JsonResponse
     {
         $catalog = $this->dm->createQueryBuilder(Catalog::class)
             ->field('childs')->prime(true)
             ->field('_id')->equals($id)
             ->getQuery()
             ->getSingleResult();
-        $newParentId = $request->request->get('newCatalogId');
+        $newParentId = $request->request->get('newParentId');
         $catalog->setName($request->request->get('name'));
         if($newParentId) {
             $parent = $catalog->getParent();
@@ -177,8 +191,10 @@ final class CatalogController extends AbstractController
             $newParent->addChild($catalog);
             $this->commitChanges($newParent, true);
         } else $this->commitChanges($catalog, true);
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
-            ['groups' => ['Catalog_default', 'Catalog_childs']]);
+        $catalog = $this->getCatalog($catalog, 1);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT);
+//        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+//            ['groups' => ['Catalog_default', 'Catalog_childs']]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
@@ -190,14 +206,63 @@ final class CatalogController extends AbstractController
     {
         $catalog = $this->dm->createQueryBuilder(Catalog::class)
             ->field('childs')->prime(true)
-            ->field('_id')->equals($id)
+            ->field('id')->equals($id)
             ->getQuery()
             ->getSingleResult();
         if(!$catalog) throw new BadRequestHttpException("catalog not found");
         $this->deleteDocumentsFromCatalog($catalog);
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
-            ['groups' => ['Catalog_default', 'Catalog_childs']]);
+        $catalog = $this->getCatalog($catalog, 1);
+        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT);
+//        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
+//            ['groups' => ['Catalog_default', 'Catalog_childs']]);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
+    }
+
+    function getCatalog(Catalog $catalog, int $level) {
+        $parent = null;
+        $childs = null;
+        $documents = null;
+        if($catalog->getChildsCount() > 0 && $level < 2) {
+            foreach ($catalog->getChilds() as $child)
+                $childs[] = $this->getCatalog($child, $level);
+        }
+        if($catalog->getParent() && $level < 2) {
+            $parent = $this->getCatalog($catalog->getParent(), ++$level);
+        }
+        if($catalog->getDocumentsCount() > 0) {
+            try {
+                foreach ($catalog->getDocuments() as $document) {
+                    $documentItem = [
+                        'id' => $document->getId(),
+                        'createdAt' => $document->getCreatedAt(),
+                        'author' => $document->getAuthor(),
+                        'path' => $document->getPath(),
+                        'fileName' => $document->getFileName(),
+                    ];
+                    $documents[] = $documentItem;
+                }
+            } catch (\Throwable $e) {
+                throw new BadRequestHttpException($e->getMessage() .' | '. $document );
+            }
+        }
+        try {
+            $arr = [
+                'id' => $catalog->getId(),
+                'author' => $catalog->getAuthor(),
+                'name' => $catalog->getName(),
+                'createdAt' => $catalog->getCreatedAt(),
+                'slug' => $catalog->getSlug(),
+                'level' => $catalog->getLevel(),
+                'childsCount' => $catalog->getChildsCount(),
+                'documentsCount' => $catalog->getDocumentsCount(),
+                'parent' => $parent,
+                'childs' => $childs,
+                'documents' => $documents
+            ];
+        } catch (\Throwable $e){
+            throw new BadRequestHttpException($e->getMessage() .' | '. $catalog );
+        }
+        return $arr;
     }
 
      function deleteDocumentsFromCatalog($catalog) {

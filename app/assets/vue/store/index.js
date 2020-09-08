@@ -5,7 +5,7 @@ import PostModule from "./post";
 import NewsModule from "./news";
 import CommentModule from "./comment";
 import UserModule from "./user";
-
+import CatalogModule from "./catalog";
 
 Vue.use(Vuex);
 
@@ -15,6 +15,7 @@ export default new Vuex.Store({
         post: PostModule,
         news: NewsModule,
         comment: CommentModule,
-        user: UserModule
+        user: UserModule,
+        catalog: CatalogModule
     }
 });

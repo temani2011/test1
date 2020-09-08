@@ -147,7 +147,7 @@ class News
     public function getCreated(): ?string
     {
 
-        return $this->created->format('d.m.Y');;
+        return $this->created->format('d.m.Y');
     }
 
     public function setCreated(\DateTimeInterface $created): self

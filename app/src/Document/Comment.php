@@ -57,7 +57,7 @@ class Comment
 
     public function getCreatedAt()
     {
-        return $this->createdAt;
+        return $this->createdAt->format('d.m.Y');
     }
 
     public function getAuthor()

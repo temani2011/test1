@@ -69,6 +69,8 @@ final class DocumentController extends AbstractController
         $catalogId = $request->request->get('catalogId');
         $entityAsArray = $this->serializer->normalize($user, null, ['groups' => ['User_simple']]);
         $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['id'=>$catalogId]);
+        if(!$catalog) throw new BadRequestHttpException('catalog not found');
+        $documents = [];
         $files = $request->files;
         if($files) {
             $this->fileUploader->setTargetDirectory($this->fileUploader->getTargetDirectory()
@@ -78,6 +80,7 @@ final class DocumentController extends AbstractController
                     $fileName = $this->fileUploader->upload($file);
                     $fullPath = $this->fileUploader->getTargetDirectory() . '/' . $fileName;
                     $document = new Document();
+                    $documents[] = $document;
                     $document->setFileName($fileName)
                         ->setPath($fullPath)
                         ->setAuthor($entityAsArray);
@@ -86,7 +89,7 @@ final class DocumentController extends AbstractController
             }
         }
         $this->commitChanges($catalog, true);
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT, ['groups' => ['Catalog_default']]);
+        $data = $this->serializer->serialize([ 'catalogId' => $catalog->getId(), 'documents'=> $documents], JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
@@ -99,10 +102,11 @@ final class DocumentController extends AbstractController
     {
         $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['documents.filename' => $name]);
         if(!$catalog) throw new BadRequestHttpException("document not found");
+        $fdocument = null;
         foreach ($catalog->getDocuments() as $document)
             if($document->getFileName() == $name)
                 $fdocument = $document;
-        $data = $this->serializer->serialize($fdocument, JsonEncoder::FORMAT, ['groups' => ['Catalog_default']]);
+        $data = $this->serializer->serialize([ 'catalogId' => $catalog->getId(), 'documents'=> $fdocument], JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
@@ -115,10 +119,11 @@ final class DocumentController extends AbstractController
     {
         $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['documents.id' => $id]);
         if(!$catalog) throw new BadRequestHttpException("document not found");
+        $fdocument = null;
         foreach ($catalog->getDocuments() as $document)
             if($document->getId() == $id)
                 $fdocument = $document;
-        $data = $this->serializer->serialize($fdocument, JsonEncoder::FORMAT, ['groups' => ['Catalog_default']]);
+        $data = $this->serializer->serialize([ 'catalogId' => $catalog->getId(), 'documents'=> $fdocument], JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
@@ -144,6 +149,7 @@ final class DocumentController extends AbstractController
         $catalog = $this->dm->getRepository(Catalog::class)->findOneBy(['documents.id' => $id]);
         if(!$catalog) throw new BadRequestHttpException("document not found");
         $fdocument = null;
+        $newCatalog = null;
         foreach ($catalog->getDocuments() as $document)
             if($document->getId() == $id) {
                 $document->setFileName($request->request->get('fileName'));
@@ -163,8 +169,8 @@ final class DocumentController extends AbstractController
             $newCatalog->addDocument($fdocument);
             $this->commitChanges($newCatalog, true);
         } else $this->commitChanges($catalog, true);
-        $data = $this->serializer->serialize($newCatalog, JsonEncoder::FORMAT,
-            ['groups' => ['Catalog_default', 'Catalog_childs']]);
+        $data = $this->serializer->serialize([ 'oldCatalogId' => $catalog->getId(),
+            'newCatalogId' => $newCatalog->getId(), 'documents' => $fdocument], JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
@@ -187,9 +193,55 @@ final class DocumentController extends AbstractController
         $this->fileUploader->delete($curDocPath);
         $catalog->removeDocument($fdocument);
         $this->commitChanges($catalog, true);
-        $data = $this->serializer->serialize($catalog, JsonEncoder::FORMAT,
-            ['groups' => ['Catalog_default', 'Catalog_childs']]);
+        $data = $this->serializer->serialize([ 'catalogId' => $catalog->getId(), 'documents' => $fdocument], JsonEncoder::FORMAT);
         return new JsonResponse($data, Response::HTTP_OK, [], true);
+    }
+
+    function getCatalog(Catalog $catalog, int $level) {
+        $parent = null;
+        $childs = null;
+        $documents = null;
+        if($catalog->getChildsCount() > 0 && $level < 2) {
+            foreach ($catalog->getChilds() as $child)
+                $childs[] = $this->getCatalog($child, $level);
+        }
+        if($catalog->getParent() && $level < 2) {
+            $parent = $this->getCatalog($catalog->getParent(), ++$level);
+        }
+        if($catalog->getDocumentsCount() > 0) {
+            try {
+                foreach ($catalog->getDocuments() as $document) {
+                    $documentItem = [
+                        'id' => $document->getId(),
+                        'createdAt' => $document->getCreatedAt(),
+                        'author' => $document->getAuthor(),
+                        'path' => $document->getPath(),
+                        'fileName' => $document->getFileName(),
+                    ];
+                    $documents[] = $documentItem;
+                }
+            } catch (\Throwable $e) {
+                throw new BadRequestHttpException($e->getMessage() .' | '. $document );
+            }
+        }
+        try {
+            $arr = [
+                'id' => $catalog->getId(),
+                'author' => $catalog->getAuthor(),
+                'name' => $catalog->getName(),
+                'createdAt' => $catalog->getCreatedAt(),
+                'slug' => $catalog->getSlug(),
+                'level' => $catalog->getLevel(),
+                'childsCount' => $catalog->getChildsCount(),
+                'documentsCount' => $catalog->getDocumentsCount(),
+                'parent' => $parent,
+                'childs' => $childs,
+                'documents' => $documents
+            ];
+        } catch (\Throwable $e){
+            throw new BadRequestHttpException($e->getMessage() .' | '. $catalog );
+        }
+        return $arr;
     }
 
     public function commitChanges(Catalog $catalog, bool $isPersist){

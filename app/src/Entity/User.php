@@ -205,9 +205,9 @@ class User implements UserInterface
      * @Groups({"User_default"})
      * @return DateTime
      */
-    public function getCreated(): DateTime
+    public function getCreated(): ?string
     {
-        return $this->created;
+        return $this->created->format('d.m.Y');
     }
 
     /**
