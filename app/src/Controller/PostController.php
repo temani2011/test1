@@ -18,7 +18,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 /**
  * @Rest\Route("/api")
- * @IsGranted("IS_AUTHENTICATED_FULLY")
  */
 final class PostController extends AbstractController
 {
